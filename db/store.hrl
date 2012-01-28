@@ -1,33 +1,8 @@
-%% A note on Object structure.
-
-%% dict     : '[' ']'
-%%          | '[' pairs ']'
+%% `changeset` record is a list of hunks that consititute a patch.
+%%  A hunk can be - chgval, addprops, delprops, chgprop
 %%
-%% pairs    : pair 
-%%          | pair ',' pair
-%%
-%% pair     : '{' binary ',' value '}'
-%%
-%% list     : '[' ']'
-%%          | '[' values ']'
-%%
-%% values   : value
-%%          | value ',' value
-%%
-%% value    : string
-%%          | number
-%%          | true
-%%          | false
-%%          | null
-%%          | dict
-%%          | list
-%%
-%% string   : '{' 'str', binary '}'
-
-
-%% `changeset` record is a list of hunks that consititute a patch. Which can be,
-%%      chgval,
-%%      addprops, delprops, chgprop
+%%  Every changeset is identified by a unique hash generated from
+%%  its hunks.
 -record( changeset, { id, hunks=[] }).
 
 %% `chgval` tuple is a hunk for changes done to simple term values like
