@@ -8,7 +8,7 @@ syntax: glob
 .vim_session
 *.boot
 *.script
-numeric/priv/prime*.dets
+numeric/priv/primes/prime*.dets
 # switch to regexp syntax.
 syntax: regexp
 ^\.pc/

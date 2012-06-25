@@ -13,7 +13,7 @@
 
 %% gen_server behaviour.
 -export([ init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
-          code_change/3]).
+          code_change/3 ]).
 
 %% Suppress warnings.
 -export([ filterprimes/3, filterprimes/2, checkprime/2 ]).
@@ -23,18 +23,18 @@
 %% APIs for prime number generation, caching and services
 
 % Return server `State`.
-getstate() -> gen_server:call( ?GENPRIME, getstate ).
+getstate() -> gen_server:call( server_name(), getstate ).
 
 
 % Server housekeeping activities. Like,
 %   * dets tables could have gone fragmented, close them and re-open with 
 %     `repair` option set to `force`.
-housekeep() -> gen_server:call( ?GENPRIME, housekeep ).
+housekeep() -> gen_server:call( server_name(), housekeep ).
 
 
 % Return a list of first `N` prime numbers.
 nprimes(N) ->
-    OrdPs = case gen_server:call( ?GENPRIME, {nprimes, N} ) of
+    OrdPs = case gen_server:call( server_name(), {nprimes, N} ) of
                 {_Tag, PrimeD, 0} -> lists:reverse( PrimeD );
                 {Tag, PrimeD, RcvN} -> lists:sort( rcv( Tag, PrimeD, RcvN ))
             end,
@@ -45,7 +45,7 @@ nprimes(N) ->
 
 % Return a list of prime numbers between `Start` and `End`.
 primesWithin(Start, End) ->
-    OrdPs = case gen_server:call( ?GENPRIME, {primeswithin, Start, End} ) of
+    OrdPs = case gen_server:call( server_name(), {primeswithin, Start, End} ) of
                 {_Tag, PrimeD, 0} -> lists:reverse( PrimeD );
                 {Tag, PrimeD, RcvN} -> lists:sort( rcv( Tag, PrimeD, RcvN ))
             end,
@@ -57,18 +57,18 @@ primesWithin(Start, End) ->
 
 % Check whether `N` is prime or not.
 isprime(N) ->
-    Tag = gen_server:call( ?GENPRIME, {isprime, N} ),
+    Tag = gen_server:call( server_name(), {isprime, N} ),
     receive {Tag, Bool} -> Bool end.
 
 
 % Store (cache) a list of prime numbers in a dets table under `Key`.
 store_primes(Key, Primes) -> 
-    gen_server:call( ?GENPRIME, {storeprimes, Key, Primes} ).
+    gen_server:call( server_name(), {storeprimes, Key, Primes} ).
 
 
 % flush data to DETS files.
 sync() ->
-    gen_server:cast( ?GENPRIME, sync ).
+    gen_server:cast( server_name(), sync ).
 
 
 % Generate prime numbers in sequential manner starting from the first prime 2
@@ -93,7 +93,7 @@ init(_Args) ->
     {ok, NumFiles} = application:get_env(num_primefiles),
 
     % Setup cache files for storing computed prime numbers
-    Dir = code:priv_dir(numeric),
+    Dir = filename:join([ code:priv_dir(?APPNAME), ?PRIMECACHEDIR ]),
     Tbls = openfiles( Dir, NumFiles ),
 
     % Calculate and cache the first slot of prime numbers.
@@ -158,6 +158,12 @@ code_change(_A, _B, _C) ->
 
 
 %%---- Internal functions
+
+% Prime number proc-reference
+server_name() ->
+    {ok, Spec} = application:get_env(?APPNAME, childspecs),
+    {_M, _F, [A | _As]} = element(2, proplists:lookup(prime, Spec)),
+    A.
 
 % Open dets file `FName` using standard Options.
 openfile(FName) ->

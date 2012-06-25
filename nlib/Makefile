@@ -23,7 +23,7 @@ eunit : all $(TESTOBJS)
 	@$(PROG_RUN_EUNIT) -a nlib
 
 clean :
-	rm -rf ebin/*
+	rm -rf ebin/*.beam ebin/*.app
 	rm -rf src/*.beam
 	rm -rf src/*.d
 

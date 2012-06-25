@@ -1,4 +1,5 @@
--define( GENPRIME, {global, genprime} ).
+-define( APPNAME, numeric ).
+-define( PRIMECACHEDIR, "primes" ).
 -define( DETS_AUTOSAVE, 100000 ).     % 10 seconds
 -define( DETS_FILE_BUCKET, 100000000 ). % 100 million
 -define( DETS_SLOT_BUCKET, 1000 ).
