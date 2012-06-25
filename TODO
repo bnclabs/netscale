@@ -1,0 +1,3 @@
+* How to define relative directories in .app files for application
+  configuration ?
+    `boot_var` flat for NSLIB 

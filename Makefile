@@ -1,25 +1,25 @@
-APPS := numeric
+export NSDIR := $(CURDIR)
 
-export SHELL := /bin/sh
-export ECHO := echo
-export PROG_INC_DEPS := $(CURDIR)/_releases/incdeps.erl
-export ERL_LIBS := $(CURDIR)
-export ERLC := erlc
-export ERLC_FLAGS :=
-export ERL_FLAGS :=
-export INCLUDE_FLAGS :=
+include inc.mk
+
+.PHONY : $(APPS) $(CHILDAPP_TARGETS) eunit release release% clean cleanall 
 
 all :
 	@for dir in $(APPS); do $(MAKE) -C $$dir; done
 
-release :
-	$(MAKE) -C _releases release
+$(APPS) $(CHILDAPP_TARGETS) :
+	@$(MAKE) -C $(call ctarget,$@)
+
+eunit : all
+	@for dir in $(APPS); do $(MAKE) -C $$dir eunit; done
+
+release release% :
+	$(MAKE) -C releases $(word 2,$(call ctarget,$@))
 
 clean :
 	rm -rf `find ./ -name erl_crash.dump`
 	@for dir in $(APPS); do $(MAKE) -C $$dir clean; done
-	$(MAKE) -C _releases clean
-
+	$(MAKE) -C releases clean
 
 cleanall :
 	@for dir in $(APPS); do $(MAKE) -C $$dir cleanall; done

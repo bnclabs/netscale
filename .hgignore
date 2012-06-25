@@ -2,8 +2,13 @@
 syntax: glob
 *.pyc
 *.swp
+*.d
 *.beam
 *~
+.vim_session
+*.boot
+*.script
+numeric/priv/prime*.dets
 # switch to regexp syntax.
 syntax: regexp
 ^\.pc/
