@@ -140,7 +140,7 @@ pascalTriangle_test_() ->
     [ ?_assertEqual(Ref, num:pascalTriangle(10)) ].
 
 amicables_test_() ->
-    Pred = fun(N, Acc) -> N =< 6368 end,
+    Pred = fun(N, _Acc) -> N =< 6368 end,
     Ref = [220,284,1184,1210,2620,2924,5020,5564,6232,6368],
     [ ?_assertEqual( Ref, num:amicables(10) ),
       ?_assertEqual( Ref, num:amicables(Pred) ) ].

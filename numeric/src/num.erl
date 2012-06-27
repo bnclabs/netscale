@@ -14,9 +14,7 @@
 
 -include_lib("nlib/include/common.hrl").
 
--ifdef(EUNIT).
 -include_lib("eunit/include/eunit.hrl").
--endif.
 
 % floor the given floating point number `FNum`.
 floor(FNum) when FNum < 0 ->

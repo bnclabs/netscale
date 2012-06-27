@@ -19,28 +19,20 @@
 -export([ filterprimes/3, filterprimes/2, checkprime/2 ]).
 
 -include_lib( "numeric/include/prime.hrl" ).
+-include_lib( "eunit/include/eunit.hrl" ).
 
 %% APIs for prime number generation, caching and services
 
 % Return server `State`.
-getstate() -> gen_server:call( server_name(), getstate ).
+getstate() ->
+    gen_server:call( server_name(), getstate ).
 
 
 % Server housekeeping activities. Like,
 %   * dets tables could have gone fragmented, close them and re-open with 
 %     `repair` option set to `force`.
-housekeep() -> gen_server:call( server_name(), housekeep ).
-
-
-% Return a list of first `N` prime numbers.
-nprimes(N) ->
-    OrdPs = case gen_server:call( server_name(), {nprimes, N} ) of
-                {_Tag, PrimeD, 0} -> lists:reverse( PrimeD );
-                {Tag, PrimeD, RcvN} -> lists:sort( rcv( Tag, PrimeD, RcvN ))
-            end,
-    Primes = lists:map( fun({_, Ps}) -> Ps end, OrdPs ),
-    {Res, _} = lists:split( Primes, N ),
-    Res.
+housekeep() -> 
+    gen_server:call( server_name(), housekeep ).
 
 
 % Return a list of prime numbers between `Start` and `End`.
@@ -53,6 +45,17 @@ primesWithin(Start, End) ->
     lists:takewhile( fun(N) -> N =< End end, 
                      lists:dropwhile( fun(N) -> N < Start end,
                                       lists:flatten(Primes) )).
+
+
+% Return a list of first `N` prime numbers.
+nprimes(N) ->
+    OrdPs = case gen_server:call( server_name(), {nprimes, N} ) of
+                {_Tag, PrimeD, 0} -> lists:reverse( PrimeD );
+                {Tag, PrimeD, RcvN} -> lists:sort( rcv( Tag, PrimeD, RcvN ))
+            end,
+    Primes = lists:map( fun({_, Ps}) -> Ps end, OrdPs ),
+    {Res, _} = lists:split( N, lists:flatten(Primes) ),
+    Res.
 
 
 % Check whether `N` is prime or not.
@@ -113,14 +116,14 @@ handle_call(housekeep, _From, State) ->
     NewState = repair_tables( State ),
     {reply, NewState, NewState};
 
-handle_call({nprimes, N}, {_Pid, Tag}=From, State) ->
-    Keys = range2keys( ?DETS_SLOT_BUCKET, (N div 5) + ?DETS_SLOT_BUCKET ),
-    {RcvN, PrimeD} = fetch_till( Keys, State, 0, [], From ),
-    {reply, {Tag, PrimeD, RcvN}, State};
-
 handle_call({primeswithin, Start, End}, {_Pid, Tag}=From, State) ->
     Keys = range2keys( Start, End ),
-    {RcvN, PrimeD} = fetch_slots( Keys, State, 0, [], From ),
+    {RcvN, PrimeD} = fetch_slots( Keys, State, From, 0, [] ),
+    {reply, {Tag, PrimeD, RcvN}, State};
+
+handle_call({nprimes, N}, {_Pid, Tag}=From, State) ->
+    Keys = range2keys( ?DETS_SLOT_BUCKET, (N div 5) + ?DETS_SLOT_BUCKET ),
+    {RcvN, PrimeD} = fetch_till( Keys, State, From, 0, [] ),
     {reply, {Tag, PrimeD, RcvN}, State};
 
 handle_call({isprime, N}, {_Pid, Tag}=From, State) ->
@@ -170,17 +173,17 @@ openfile(FName) ->
     %Opts = [ {auto_save, ?DETS_AUTOSAVE}, {max_no_slots, ?DETS_MAX_SLOTS},
     %         {min_no_slots, ?DETS_MIN_SLOTS} ],
     Opts = [ {auto_save, ?DETS_AUTOSAVE} ],
-    {ok, Tbl} = openfile(FName, Opts),
-    Tbl.
+    openfile(FName, Opts).
 
 % Open dets file `FName` using supplied Options `Opts`.
 openfile(FName, Opts) -> 
-    dets:open_file(FName, Opts).
+    {ok, Tbl} = dets:open_file(FName, Opts),
+    Tbl.
 
 % Open all dets files under path `Dir`, using standard options.
 openfiles(Dir, NumFiles) ->
     Fn = fun(I) -> FName = primepath(Dir, I), {I, openfile(FName)} end,
-    lists:map( Fn, lists:seq(0, NumFiles) ).
+    lists:map( Fn, lists:seq(0, NumFiles-1) ).
 
 closetables(State) ->
     [ dets:close(Tbl) || {_, Tbl} <- State#gpstate.tbls ],
@@ -192,7 +195,7 @@ primefile(Suffix) ->
 primepath(Dir,Suffix) ->
     filename:join([ Dir, primefile(Suffix) ]).
 
-range2keys(From, Till) -> 
+range2keys(From, Till) when (From =< Till) and (From > 0) -> 
     lists:seq( ceilKey(From), ceilKey(Till), ?DETS_SLOT_BUCKET ).
 
 ceilKey(Key) when (Key rem ?DETS_SLOT_BUCKET) =:= 0 -> Key;
@@ -220,7 +223,7 @@ fetch_till([Key | Keys], State, From, RcvN, PrimeD) ->
     {Suffix, Tbl} = proplists:lookup( Suffix, State#gpstate.tbls ),
     case dets:lookup( Tbl, Key ) of
         [Ps] ->
-            fetch_till( Keys, State, From, RcvN, [{Key, Ps} | PrimeD] );
+            fetch_till( Keys, State, From, RcvN, [Ps | PrimeD] );
         [] ->
             Ns = lists:seq( Key-?DETS_SLOT_BUCKET+1, Key ),
             spawn( ?MODULE, filterprimes, [Ns, Key, From] ),
@@ -236,7 +239,7 @@ fetch_slots([Key | Keys], State, From, RcvN, PrimeD) ->
     {Suffix, Tbl} = proplists:lookup( Suffix, State#gpstate.tbls ),
     case dets:lookup( Tbl, Key ) of
         [Ps] ->
-            fetch_slots( Keys, State, From, RcvN, [{Key, Ps} | PrimeD] );
+            fetch_slots( Keys, State, From, RcvN, [Ps | PrimeD] );
         [] ->
             Ns = lists:seq( Key-?DETS_SLOT_BUCKET+1, Key ),
             spawn( ?MODULE, filterprimes, [Ns, Key, From] ),
@@ -262,7 +265,7 @@ filterprimes(Ns, ForKey, {Pid, Tag}) ->
 % numbers. Move to next next slot of prime numbers (from cached file) and
 % repeate the same, until eveything in `Ns` is nothing but primes.
 filterprimes(Ns, WithKey) ->
-    Primes = primesWithin(WithKey, WithKey),
+    Primes = primesWithin(WithKey-?DETS_SLOT_BUCKET+1, WithKey),
     Fn = fun(N, Acc) -> 
             case num:divisible(N, Primes) of true -> Acc; false -> [N|Acc] end
          end,
@@ -280,13 +283,13 @@ filterprimes(Ns, WithKey) ->
 checkprime(N, {Pid, Tag}) ->
     Pid ! {Tag, checkprime(N, ?DETS_SLOT_BUCKET)};
 
-% Use `WithKey` to compute whether `N` is prime or not. Move to next next slot
+% Use `WithKey` to compute whether `N` is prime or not. Move to next slot
 % of prime numbers (from cached file) and repeate the same, until it is
 % conclusively proved that `N` is prime.
 checkprime(0, _WithKey) -> false;
 checkprime(1, _WithKey) -> false;
 checkprime(N, WithKey) ->
-    Primes = primesWithin( WithKey, WithKey ),
+    Primes = primesWithin(WithKey-?DETS_SLOT_BUCKET+1, WithKey ),
     case num:divisible( N, Primes ) of
         true -> false;
         false when (WithKey*WithKey) > N -> true;
@@ -294,17 +297,17 @@ checkprime(N, WithKey) ->
     end.
 
 
-% Compute `Count` number of prime numbers, starting from `N`.
-primesN( _, 0, Acc ) -> lists:reverse( Acc );
+% Compute `Count` number of prime numbers, starting from `2`.
+primesN( _, 0, Acc ) -> Acc;
 primesN( N, Count, Acc ) ->
     SRootN = num:floor( math:sqrt( N )),
     Pred = fun (X) -> X =< SRootN end,
     case num:divisibleWhile( N, Acc, Pred ) of
         true -> primesN( N+1, Count, Acc );
-        false -> primesN( N+1, Count-1, [N | Acc] )
+        false -> primesN( N+1, Count-1, Acc ++ [N] )
     end.
 
-% Compute a sequential list of prime numbers, starting from `N`, as long as 
+% Compute a sequential list of prime numbers, starting from `2`, as long as 
 % predicate `Pred` returns true.
 primesPred( N, Pred, Acc ) ->
     case Pred(N, Acc) of
@@ -318,3 +321,28 @@ primesPred( N, Pred, Acc ) ->
         false ->
             Acc
     end.
+
+
+%%---- Local test cases.
+
+-ifdef(EUNIT).
+
+range2keys_test_() ->
+    Ref1 = [?DETS_SLOT_BUCKET], 
+    Ref2 = lists:seq(?DETS_SLOT_BUCKET, 2000, ?DETS_SLOT_BUCKET),
+    [ ?_assertEqual( Ref1, range2keys(1, 10) ),
+      ?_assertEqual( Ref2, range2keys(1, 1001) ) ].
+
+ceilKey_test_() ->
+    [ ?_assertEqual( 1000, ceilKey(1000) ),
+      ?_assertEqual( 1000, ceilKey(1) ),
+      ?_assertEqual( 2000, ceilKey(1001) ) ].
+
+primesPred_test_() ->
+    Pred = fun(N, _Acc) -> N < 10 end,
+    [ ?_assertEqual( [2,3,5,7], primesPred(2, Pred, []) ) ].
+
+primesN_test_() ->
+    [ ?_assertEqual( [2,3,5,7,11,13,17,19,23,29], primesN(2, 10, []) ) ].
+
+-endif.

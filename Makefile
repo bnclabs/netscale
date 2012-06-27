@@ -10,8 +10,11 @@ all :
 $(APPS) $(CHILDAPP_TARGETS) :
 	@$(MAKE) -C $(call ctarget,$@)
 
-eunit : all
-	@for dir in $(APPS); do $(MAKE) -C $$dir eunit; done
+eunit :
+	@for dir in $(APPS); do $(MAKE) EUNIT=1 -C $$dir eunit; done
+
+runeunit :
+	@for dir in $(APPS); do $(MAKE) EUNIT=1 -C $$dir runeunit; done
 
 release release% :
 	$(MAKE) -C releases $(word 2,$(call ctarget,$@))

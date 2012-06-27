@@ -9,20 +9,20 @@ export ECHO := echo
 export ERL_LIBS := $(NSDIR)
 export PROG_INC_DEPS := $(NSDIR)/bin/incdeps.erl
 export PROG_MAKEREL := $(NSDIR)/releases/makerel.erl
-export PROG_RUN_EUNIT := $(NSDIR)/bin/run_eunit.erl
 
 export ERLC := erlc
 export INCLUDE_FLAGS := -I $(NSDIR)/nlib/include
-export ERLC_FLAGS := 
+export ERLC_FLAGS := -DNOTEST
 
 export ERL := erl
 export ERL_EMUFLAGS := 
-export ERL_FLAGS := -boot_var NSLIB $(CIRDIR)
+export ERL_FLAGS := 
 export ERL_PLAINFLAGS :=
 
 export ctarget = $(subst -, ,$1)
 
 # Generic rules
+eunit : ERLC_FLAGS += -DTEST
 
 %.d: %.erl
 	@$(ECHO) "  IDEPS" $<; $(PROG_INC_DEPS) $< $@ $(INCLUDE_FLAGS)

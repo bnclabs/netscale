@@ -20,7 +20,10 @@ make-ebin :
 	@mkdir -p ebin
 
 eunit : all $(TESTOBJS)
-	@$(PROG_RUN_EUNIT) -a nlib
+
+runeunit : eunit
+	@erl -noshell -boot $(ERL_LIBS)/releases/netscale -s run_eunit start /a nlib
+
 
 clean :
 	rm -rf ebin/*.beam ebin/*.app
