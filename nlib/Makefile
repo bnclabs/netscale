@@ -10,7 +10,8 @@ OBJS = $(SRCS:src/%.erl=ebin/%.beam)
 TESTSRCS = $(wildcard tests/*erl)
 TESTOBJS = $(TESTSRCS:tests/%.erl=ebin/%.beam)
 APP  = ebin/nlib.app
-DEPS = $(SRCS:.erl=.d)
+SRCDEPS = $(SRCS:.erl=.d)
+TESTDEPS = $(TESTSRCS:.erl=.d)
 
 .phony : make-ebin clean
 
@@ -30,5 +31,5 @@ clean :
 	rm -rf src/*.beam
 	rm -rf src/*.d
 
--include $(DEPS)
+-include $(SRCDEPS) $(TESTDEPS)
 

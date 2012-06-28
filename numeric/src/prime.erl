@@ -32,35 +32,47 @@ getstate() ->
 %   * dets tables could have gone fragmented, close them and re-open with 
 %     `repair` option set to `force`.
 housekeep() -> 
-    gen_server:call( server_name(), housekeep ).
+    gen_server:call( server_name(), housekeep, infinity ).
 
 
 % Return a list of prime numbers between `Start` and `End`.
 primesWithin(Start, End) ->
-    OrdPs = case gen_server:call( server_name(), {primeswithin, Start, End} ) of
-                {_Tag, PrimeD, 0} -> lists:reverse( PrimeD );
-                {Tag, PrimeD, RcvN} -> lists:sort( rcv( Tag, PrimeD, RcvN ))
+    Rc = gen_server:call( server_name(), {primeswithin, Start, End}, infinity ),
+    Primes = case Rc of
+                {_Tag, PrimeD, 0} ->
+                    lists:flatten( lists:map( 
+                        fun({_, Ps}) -> Ps end, lists:reverse( PrimeD )
+                    ));
+                {Tag, PrimeD, RcvN} ->
+                    lists:sort( lists:flatten( lists:map(
+                        fun({_, Ps}) -> Ps end, rcv( Tag, PrimeD, RcvN )
+                    )))
             end,
-    Primes = lists:map( fun({_, Ps}) -> Ps end, OrdPs ),
+    erlang:display( element(1, lists:split(400, Primes))),
+    erlang:display( element(1, lists:split(400, lists:reverse(Primes)))),
     lists:takewhile( fun(N) -> N =< End end, 
-                     lists:dropwhile( fun(N) -> N < Start end,
-                                      lists:flatten(Primes) )).
+                     lists:dropwhile( fun(N) -> N < Start end, Primes )).
 
 
 % Return a list of first `N` prime numbers.
 nprimes(N) ->
-    OrdPs = case gen_server:call( server_name(), {nprimes, N} ) of
+    OrdPs = case gen_server:call( server_name(), {nprimes, N}, infinity ) of
                 {_Tag, PrimeD, 0} -> lists:reverse( PrimeD );
                 {Tag, PrimeD, RcvN} -> lists:sort( rcv( Tag, PrimeD, RcvN ))
             end,
-    Primes = lists:map( fun({_, Ps}) -> Ps end, OrdPs ),
-    {Res, _} = lists:split( N, lists:flatten(Primes) ),
-    Res.
+    Primes = lists:flatten( lists:map( fun({_, Ps}) -> Ps end, OrdPs )),
+    if 
+        length(Primes) > N ->
+            {Res, _} = lists:split( N, lists:flatten(Primes) ),
+            Res;
+        true->
+            Primes
+    end.
 
 
 % Check whether `N` is prime or not.
 isprime(N) ->
-    Tag = gen_server:call( server_name(), {isprime, N} ),
+    Tag = gen_server:call( server_name(), {isprime, N}, infinity ),
     receive {Tag, Bool} -> Bool end.
 
 
@@ -122,16 +134,17 @@ handle_call({primeswithin, Start, End}, {_Pid, Tag}=From, State) ->
     {reply, {Tag, PrimeD, RcvN}, State};
 
 handle_call({nprimes, N}, {_Pid, Tag}=From, State) ->
-    Keys = range2keys( ?DETS_SLOT_BUCKET, (N div 5) + ?DETS_SLOT_BUCKET ),
-    {RcvN, PrimeD} = fetch_till( Keys, State, From, 0, [] ),
+    Keys = range2keys( 1, N *20 ),
+    {RcvN, PrimeD} = fetch_slots( Keys, State, From, 0, [] ),
     {reply, {Tag, PrimeD, RcvN}, State};
 
 handle_call({isprime, N}, {_Pid, Tag}=From, State) ->
     spawn( ?MODULE, checkprime, [N, From] ),
-    {noreply, Tag, State};
+    {reply, Tag, State};
 
 handle_call({storeprimes, Key, Primes}, _From, State) ->
-    Suffix = Key div ?DETS_FILE_BUCKET,
+    Suffix = (Key-1) div ?DETS_FILE_BUCKET,
+    erlang:display({ storeprimes, Suffix, Key, length(Primes) }),
     {Suffix, Tbl} = proplists:lookup( Suffix, State#gpstate.tbls ),
     {reply, dets:insert( Tbl, {Key, Primes} ), State}.
 
@@ -215,27 +228,11 @@ sync_tables(State) ->
 
 
 % Prime number access functions
-fetch_till([], _State, _From, RcvN, PrimeD) ->
-    {RcvN, PrimeD};
-
-fetch_till([Key | Keys], State, From, RcvN, PrimeD) ->
-    Suffix = Key div ?DETS_FILE_BUCKET,
-    {Suffix, Tbl} = proplists:lookup( Suffix, State#gpstate.tbls ),
-    case dets:lookup( Tbl, Key ) of
-        [Ps] ->
-            fetch_till( Keys, State, From, RcvN, [Ps | PrimeD] );
-        [] ->
-            Ns = lists:seq( Key-?DETS_SLOT_BUCKET+1, Key ),
-            spawn( ?MODULE, filterprimes, [Ns, Key, From] ),
-            fetch_till( Keys, State, From, RcvN+1, PrimeD )
-    end.
-
-
 fetch_slots([], _State, _From, RcvN, PrimeD) ->
     {RcvN, PrimeD};
 
 fetch_slots([Key | Keys], State, From, RcvN, PrimeD) ->
-    Suffix = Key div ?DETS_FILE_BUCKET,
+    Suffix = (Key-1) div ?DETS_FILE_BUCKET,
     {Suffix, Tbl} = proplists:lookup( Suffix, State#gpstate.tbls ),
     case dets:lookup( Tbl, Key ) of
         [Ps] ->
@@ -257,7 +254,13 @@ rcv(Tag, PrimeD, RcvN) ->
 % tag is supplied to identify the file-slot and the requesting process to send
 % the result.
 filterprimes(Ns, ForKey, {Pid, Tag}) ->
-    Primes = filterprimes(Ns, ?DETS_SLOT_BUCKET),
+    erlang:display({filterprimes, ForKey}),
+
+    % A sort is required on the resulting list of prime numbers because
+    % `filterprimes` tend to rotate the list of `Ns` as it folds over its
+    % divisibility. Sometimes it will be sorted, other times it will be
+    % reverse sorted.
+    Primes = lists:sort( filterprimes(Ns, ?DETS_SLOT_BUCKET) ),
     ?MODULE:store_primes(ForKey, Primes),
     Pid ! {Tag, {ForKey, Primes}}.
 
@@ -290,7 +293,11 @@ checkprime(0, _WithKey) -> false;
 checkprime(1, _WithKey) -> false;
 checkprime(N, WithKey) ->
     Primes = primesWithin(WithKey-?DETS_SLOT_BUCKET+1, WithKey ),
-    case num:divisible( N, Primes ) of
+    PrimeNums = if 
+                    N > WithKey -> Primes;
+                    true -> lists:takewhile( fun(X) -> X < N end, Primes )
+                end,
+    case num:divisible( N, PrimeNums ) of
         true -> false;
         false when (WithKey*WithKey) > N -> true;
         false -> checkprime( N, WithKey+?DETS_SLOT_BUCKET )

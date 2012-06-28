@@ -84,5 +84,5 @@ isprime_test_() ->
         941, 947, 953, 967, 971, 977, 983, 991, 997, 1009, 1013, 1019, 1021,
         1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069, 1087, 1091, 1093, 1097
     ],
-    [ ?_assertEqual( lists:all( fun prime:isprime, Primes )),
-      ?_assertEqual( false, prime:isprime(100) ) ].
+    [ ?_assert( lists:all( fun prime:isprime/1, Primes )),
+      ?_assertNot( prime:isprime(100) ) ].

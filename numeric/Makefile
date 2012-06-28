@@ -10,7 +10,8 @@ OBJS = $(SRCS:src/%.erl=ebin/%.beam)
 TESTSRCS = $(wildcard tests/*erl)
 TESTOBJS = $(TESTSRCS:tests/%.erl=ebin/%.beam)
 APP  = ebin/numeric.app
-DEPS = $(SRCS:.erl=.d)
+SRCDEPS = $(SRCS:.erl=.d)
+TESTDEPS = $(TESTSRCS:.erl=.d)
 
 .phony : make-ebin eunit clean clean-prime-cache clean-factor-cache
 
@@ -35,5 +36,5 @@ clean-prime-cache :
 clean-factor-cache :
 	rm -rf priv/factors/factor*
 
--include $(DEPS)
+-include $(SRCDEPS) $(TESTDEPS)
 
