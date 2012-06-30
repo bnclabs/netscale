@@ -1,12 +1,27 @@
 This document explains the dos and donots for those who are involved in the
 development of nscloud.
 
+
+
 * All nodes are masters. That way there is not single point of failure. Note
   that in this mode, it is not possible to have a erlang boot server. It leads
   to single point of failure.
 
-* use ndist:appstart() and ndist:appstop() to start and stop applications
+* Although process can `trap_exit` (where by exit messages are converted to
+  {'EXIT', From, Reason}) and continue to execute, that is not expected in
+  OTP. OTP behaviours like gen_* always exits.
+    ** Allow failures to cascade through, up-till supervisors **
+  that shall be he motive.
+
+* Design your applications for `failover`, `takeover` automatically gets
+  simplified.
+
+
+
+* Use ndist:appstart() and ndist:appstop() to start and stop applications
   programatically.
+
+
 
 Timeouts :
  
