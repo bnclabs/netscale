@@ -1,3 +1,7 @@
 * How to define relative directories in .app files for application
   configuration ?
     `boot_var` flat for NSLIB 
+
+* Explore possibilities to have erlang boot server (where by code is loaded
+  form a single point) without leading to a single point of failure (that is
+  without compromising on all-master topology)

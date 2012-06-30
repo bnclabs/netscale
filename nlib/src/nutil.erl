@@ -24,4 +24,3 @@ init([], _) -> [];
 init([_ | []], Acc) -> lists:reverse(Acc);
 init([L | Ls], Acc) -> init( Ls, [L | Acc] ).
 
-

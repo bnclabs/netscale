@@ -3,7 +3,7 @@
       {id,           "netscale"},
       {vsn,          "0.1"},
       {registered,   [nlib]},
-      {modules,      [nutil]},
+      {modules,      [nutil,ndist]},
       {applications, [kernel, stdlib]},
       {env,          []}
     ]

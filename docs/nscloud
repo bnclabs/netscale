@@ -1,0 +1,29 @@
+This document explains the dos and donots for those who are involved in the
+development of nscloud.
+
+* All nodes are masters. That way there is not single point of failure. Note
+  that in this mode, it is not possible to have a erlang boot server. It leads
+  to single point of failure.
+
+* use ndist:appstart() and ndist:appstop() to start and stop applications
+  programatically.
+
+Timeouts :
+ 
+  Note that timeout is a critical parameter for self healing / fault-tolerant
+  systems. The following timeouts are to be given upmost considerations while
+  developing in nscloud.
+
+  sync_nodes_timeout :
+
+    Timeout for all nodes involved in nscloud. Should be same for all nodes
+    and the worst case time take for any node in the cloud must not take more
+    that the said timeout value (in milliseconds).
+
+  heart-beat :
+
+distributed :
+
+  This kernel configuration parameter (`distributed`) must be the same for all
+  nodes taking part in the nscloud.
+
