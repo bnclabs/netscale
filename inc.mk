@@ -11,13 +11,14 @@ export PROG_INC_DEPS := $(NSDIR)/bin/incdeps.erl
 export PROG_MAKEREL := $(NSDIR)/releases/makerel.erl
 
 export ERLC := erlc
-export INCLUDE_FLAGS := -I $(NSDIR)/nlib/include
-export ERLC_FLAGS := -DNOTEST
+export INCLUDE_FLAGS := -I $(NSDIR)/nlib/include -I $(CURDIR)/include
+export ERLC_FLAGS := -DNOTEST -o ebin/
 
 export ERL := erl
 export ERL_EMUFLAGS := 
 export ERL_FLAGS := 
 export ERL_PLAINFLAGS :=
+
 
 export ctarget = $(subst -, ,$1)
 

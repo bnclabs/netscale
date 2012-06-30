@@ -2,9 +2,6 @@
 
 include ../inc.mk
 
-INCLUDE_FLAGS += -I $(CURDIR)/include
-ERLC_FLAGS += -o ebin/
-
 SRCS = $(wildcard src/*.erl)
 OBJS = $(SRCS:src/%.erl=ebin/%.beam)
 TESTSRCS = $(wildcard tests/*erl)
