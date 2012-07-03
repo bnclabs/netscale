@@ -1,0 +1,1 @@
+ERL_LIBS=$NSLIB erl -boot $NSLIB/releases/netscale -config $NSLIB/_boot/ns.config $*
