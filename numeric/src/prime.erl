@@ -149,12 +149,16 @@ handle_call({storeprimes, Key, Primes}, _From, State) ->
     {reply, dets:insert( Tbl, {Key, Primes} ), State}.
 
 
+%%-- Casts
+
 handle_cast(sync, State) ->
     sync_tables( State );
 
 handle_cast(_, _State) ->
     erlang:error("Unknown cast call").
 
+
+%%-- Infos
 
 handle_info( timeout, _state ) ->
     ok;

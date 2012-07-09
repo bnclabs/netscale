@@ -7,6 +7,9 @@ development of nscloud.
   that in this mode, it is not possible to have a erlang boot server. It leads
   to single point of failure.
 
+  To circumvent this problem there can be more than one boot servers and
+  erlang nodes can be started with `-hosts` option.
+
 * Although process can `trap_exit` (where by exit messages are converted to
   {'EXIT', From, Reason}) and continue to execute, that is not expected in
   OTP. OTP behaviours like gen_* always exits.
