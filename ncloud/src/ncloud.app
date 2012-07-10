@@ -1,8 +1,8 @@
-{ application, nlib,
+{ application, ncloud,
     [ {description,  "Netscale libraries" },
       {id,           "netscale"},
       {vsn,          "0.1"},
-      {registered,   [nlib]},
+      {registered,   [ncloud]},
       {modules,      [nutil,ndist,nfile]},
       {applications, [kernel, stdlib]},
       {env,          []}

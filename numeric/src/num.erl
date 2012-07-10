@@ -12,7 +12,7 @@
     nPn/1, nCn/1, nPr/2, nCr/2, sumOfnCn/1, permutations/2,
     nthPermutation/3, combinations/2, nthCombination/3  ]).
 
--include_lib("nlib/include/common.hrl").
+-include_lib("ncloud/include/common.hrl").
 
 -include_lib("eunit/include/eunit.hrl").
 

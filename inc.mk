@@ -1,6 +1,6 @@
 # put common definitions in here
 
-export APPS := nlib numeric
+export APPS := ncloud numeric
 export APPFILES := $(addprefix $(NSDIR)/,$(join $(APPS),$(APPS:%=/ebin/%.app)))
 export CHILDAPP_TARGETS := $(APPS:%=%%)
 
@@ -11,7 +11,7 @@ export PROG_INC_DEPS := $(NSDIR)/bin/incdeps.erl
 export PROG_MAKEREL := $(NSDIR)/releases/makerel.erl
 
 export ERLC := erlc
-export INCLUDE_FLAGS := -I $(NSDIR)/nlib/include -I $(CURDIR)/include
+export INCLUDE_FLAGS := -I $(NSDIR)/ncloud/include -I $(CURDIR)/include
 export ERLC_FLAGS := -DNOTEST -o ebin/
 
 export ERL := erl
