@@ -33,5 +33,7 @@ clean-prime-cache :
 clean-factor-cache :
 	rm -rf priv/factors/factor*
 
+ifneq ($(MAKECMDGOALS),clean)
 -include $(SRCDEPS) $(TESTDEPS)
+endif
 

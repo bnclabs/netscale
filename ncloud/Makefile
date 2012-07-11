@@ -28,5 +28,7 @@ clean :
 	rm -rf src/*.beam
 	rm -rf src/*.d
 
+ifneq ($(MAKECMDGOALS),clean)
 -include $(SRCDEPS) $(TESTDEPS)
+endif
 

@@ -36,4 +36,3 @@ ebin/%.beam : src/%.erl
 
 ebin/%.beam : tests/%.erl
 	@$(ECHO) "  ERLC" $<; $(ERLC) $(INCLUDE_FLAGS) $(ERLC_FLAGS) $<
-

@@ -48,8 +48,6 @@ primesWithin(Start, End) ->
                         fun({_, Ps}) -> Ps end, rcv( Tag, PrimeD, RcvN )
                     )))
             end,
-    erlang:display( element(1, lists:split(400, Primes))),
-    erlang:display( element(1, lists:split(400, lists:reverse(Primes)))),
     lists:takewhile( fun(N) -> N =< End end, 
                      lists:dropwhile( fun(N) -> N < Start end, Primes )).
 
