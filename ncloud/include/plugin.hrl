@@ -1,3 +1,5 @@
+-include_lib( "ncloud/include/ncloud.hrl" ).
+
 -export([ init/1, attr/1, attr/2 ]).
 
 attr(Key) ->

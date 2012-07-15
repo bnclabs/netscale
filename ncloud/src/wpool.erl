@@ -1,16 +1,14 @@
 -module(wpool).
 -behaviour(gen_server).
 
--plugin([iprocesspool]).
+-include_lib("ncloud/include/plugin.hrl").
 
+-plugin([iprocesspool]).
 %% gen_server behaviour.
 -export([ handle_call/3, handle_cast/2, handle_info/2, terminate/2,
           code_change/3 ]).
-
 %% plugin behaviour
 -export([ initialize/1 ]).
-
--include_lib("ncloud/include/plugin.hrl").
 
 
 %%---- Callbacks for plugin

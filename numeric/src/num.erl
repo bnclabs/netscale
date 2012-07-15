@@ -1,4 +1,8 @@
 -module(num).
+
+-include_lib("eunit/include/eunit.hrl").
+-include_lib("ncloud/include/ncloud.hrl").
+
 -export([
     floor/1, ceil/1, divisible/2, divisibleWhile/3, tau/0,
     factorial/1, squares/1, squareBefore/1, squareAfter/1, sumOfN/1,
@@ -11,10 +15,6 @@
     perfectNumbers/1, deficientNumbers/1, abundantNumbers/1, sumOfAbundants/1,
     nPn/1, nCn/1, nPr/2, nCr/2, sumOfnCn/1, permutations/2,
     nthPermutation/3, combinations/2, nthCombination/3  ]).
-
--include_lib("ncloud/include/common.hrl").
-
--include_lib("eunit/include/eunit.hrl").
 
 % floor the given floating point number `FNum`.
 floor(FNum) when FNum < 0 ->

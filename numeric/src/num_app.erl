@@ -1,8 +1,10 @@
 -module(num_app).
 -behaviour(supervisor).
 
--export([ start/2, prep_stop/1, stop/1, config_change/3 ]). % App behaviour
--export([ init/1 ]).    % Supervisor behaviour
+% App behaviour
+-export([ start/2, prep_stop/1, stop/1, config_change/3 ]).
+% Supervisor behaviour
+-export([ init/1 ]).
 
 -define( MAXR, 10 ).    % Number of restarts,
 -define( MAXT, 5 ).     % in number of seconds.

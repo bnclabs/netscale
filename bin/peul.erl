@@ -1,7 +1,7 @@
 #! /usr/bin/env escript
 %%! -sname script_peul
 
--include_lib("ncloud/include/common.hrl").
+-include_lib("ncloud/include/ncloud.hrl").
 
 -mode(compile).
 

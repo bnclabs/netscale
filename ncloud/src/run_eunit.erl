@@ -1,8 +1,7 @@
 -module(run_eunit).
 
--export([ start/1 ]).
-
 -include_lib("eunit/include/eunit.hrl").
+-export([ start/1 ]).
 
 options(Args, Options, Tests) ->
     case Args of

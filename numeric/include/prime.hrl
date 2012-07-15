@@ -1,4 +1,5 @@
--define( APPNAME, numeric ).
+-include_lib( "numeric/include/numeric.hrl" ).
+
 -define( PRIMECACHEDIR, "primes" ).
 -define( DETS_AUTOSAVE, 100000 ).     % 10 seconds
 -define( DETS_FILE_BUCKET, 100000000 ). % 100 million

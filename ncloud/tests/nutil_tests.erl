@@ -1,6 +1,7 @@
 -module(nutil_tests).
 
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("ncloud/include/ncloud.hrl").
 
 fst_test_() ->
     [ ?_assertEqual(1, nutil:fst({1,2})) ].

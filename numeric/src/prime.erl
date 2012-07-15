@@ -7,6 +7,9 @@
 -module(prime).
 -behaviour(gen_server).
 
+-include_lib( "eunit/include/eunit.hrl" ).
+-include_lib( "numeric/include/prime.hrl" ).
+
 %% Prime server APIs.
 -export([ getstate/0, housekeep/0, nprimes/1, primesWithin/2, isprime/1,
           store_primes/2, sync/0, primes/1 ]).
@@ -17,9 +20,6 @@
 
 %% Suppress warnings.
 -export([ filterprimes/3, filterprimes/2, checkprime/2 ]).
-
--include_lib( "numeric/include/prime.hrl" ).
--include_lib( "eunit/include/eunit.hrl" ).
 
 %% APIs for prime number generation, caching and services
 
@@ -165,10 +165,14 @@ handle_info(_, _State) ->
     erlang:error("Unknown info call").
 
 
-terminate(normal, State) -> closetables( State ), ok;
-terminate(shutdown, State) -> closetables( State ), ok; % Supervisor shutdown
-terminate({shutdown, _Reason}, State) -> closetables( State ), ok;
-terminate(_Reason, State) -> closetables( State ), ok.  % Probably an error
+terminate(normal, State) ->
+    closetables( State ), ok;
+terminate(shutdown, State) ->           % Supervisor shutdown
+    closetables( State ), ok;
+terminate({shutdown, _Reason}, State) ->
+    closetables( State ), ok;
+terminate(_Reason, State) ->            % Probably an error
+    closetables( State ), ok.
 
 
 code_change(_A, _B, _C) ->

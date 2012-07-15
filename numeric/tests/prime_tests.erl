@@ -1,7 +1,7 @@
 -module(prime_tests).
 
--include_lib("numeric/include/prime.hrl").
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("numeric/include/prime.hrl").
 
 getstate_test_() ->
     State = prime:getstate(),
