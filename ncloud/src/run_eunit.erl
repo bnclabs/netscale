@@ -13,14 +13,14 @@ options(Args, Options, Tests) ->
 
 test_apps([], _Options) -> ok;
 test_apps([ AppName | Apps ], Options) ->
-    ?debugFmt("Executing Unit test for module ~s ...", [AppName]),
+    ?debugFmt("Executing Unit test for app `~s` ...", [AppName]),
     eunit:test({application, AppName}, Options),
     test_apps( Apps, Options ).
 
 
 test_mods([], _Options) -> ok;
 test_mods([ ModName | Mods ], Options) ->
-    ?debugFmt("Executing Unit test for module ~s ...", [ModName]),
+    ?debugFmt("Executing Unit test for module `~s` ...", [ModName]),
     eunit:test({module, ModName}, Options),
     test_mods( Mods, Options ).
 

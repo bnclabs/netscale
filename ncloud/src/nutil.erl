@@ -1,6 +1,6 @@
 -module(nutil).
 
--export([ fst/1, snd/1, prune/1, tails/1, init/1 ]).
+-export([ fst/1, snd/1, prune/1, tails/1, init/1, init_last/1 ]).
 
 fst(Tuple) -> element(1, Tuple).    % First element of tuple `Tuple`
 snd(Tuple) -> element(2, Tuple).    % Second element of tuple `Tuple`
@@ -23,4 +23,12 @@ init(Ls) -> init(Ls, []).
 init([], _) -> [];
 init([_ | []], Acc) -> lists:reverse(Acc);
 init([L | Ls], Acc) -> init( Ls, [L | Acc] ).
+
+
+% Return a tuple of initial list and last element.
+init_last( Ls ) -> init_last( Ls, [] ).
+
+init_last([], _) -> erlang:error("Empty list to init_last");
+init_last([L | []], Acc) -> {lists:reverse( Acc ), L};
+init_last([L | Ls], Acc) -> init_last( Ls, [L | Acc] ).
 

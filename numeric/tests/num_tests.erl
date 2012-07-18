@@ -1,7 +1,7 @@
 -module(num_tests).
 
 -include_lib("eunit/include/eunit.hrl").
--include_lib("numeric/include/numeric.hrl")
+-include_lib("numeric/include/numeric.hrl").
 
 floor_test_() ->
     [ ?_assert( num:floor(10) =:= 10 ),

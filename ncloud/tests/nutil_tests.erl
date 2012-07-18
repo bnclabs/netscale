@@ -21,3 +21,7 @@ init_test_() ->
     [ ?_assertEqual( [1,2,3,4], nutil:init([1,2,3,4,5]) ) ].
 
 
+init_last_test_() ->
+    [ ?_assertEqual( {[1,2,3,4], 5}, nutil:init_last([1,2,3,4,5]) ) ].
+
+

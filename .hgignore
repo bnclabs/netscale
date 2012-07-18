@@ -9,6 +9,7 @@ syntax: glob
 *.boot
 *.script
 numeric/priv/primes/prime*.dets
+logs/
 # switch to regexp syntax.
 syntax: regexp
 ^\.pc/

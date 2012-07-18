@@ -20,8 +20,8 @@ make-ebin :
 eunit : all $(TESTOBJS)
 
 runeunit : eunit
-	@erl -noshell -boot $(ERL_LIBS)/releases/netscale -s run_eunit start /a ncloud
-
+	@erl -boot $(ERL_LIBS)/releases/netscale -noshell \
+		 -config $(ERL_LIBS)/_boot/test.config -s run_eunit start /a ncloud
 
 clean :
 	rm -rf ebin/*.beam ebin/*.app
