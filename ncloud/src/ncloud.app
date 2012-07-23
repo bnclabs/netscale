@@ -7,6 +7,8 @@
       {mod,          {ncloud_app,[]}},
       {applications, [kernel, stdlib]},
       {env,          [ {supname, ncloud_sup},
+                       {reload, false},
+                       {pa_inifile, "/home/pratap/dev/netscale/master.ini"},
                        {num_paports, 2},
                        {paport_name, 
                          {spawn_executable, "erlport.py"}},
@@ -14,7 +16,7 @@
                          [ {packet, 4},
                            {args, 
                              [ "--packet", "4",
-                               "--paenv", "pa-env/lib/python3.2/site-packages",
+                               "--virtenv", "pa-env/lib/python3.2/site-packages",
                                "--nouse_stdio"
                              ]},
                            exit_status,

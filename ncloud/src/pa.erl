@@ -51,11 +51,6 @@ getstate() ->
     gen_server:call( server_name(), getstate, infinity ).
 
 
-%% @doc : Request port connected to `Pid` to exit normally.
-exit_port(Pid) ->
-    gen_server:call( server_name(), {exit_port, Pid}, infinity ).
-
-
 %% @doc : loopback call to port. If successfully, the same term will be
 %% returned back as,
 %%      {ok, Term}
@@ -70,12 +65,44 @@ loopback(Term) ->
 
 %% @doc : Request the port to perform loopback on its side. Similar to calling
 %% loopback from this module. Used for testing purpose.
+%% On success, ok
+%% On failure, {error, Reason}
 reverseback() ->
     gen_server:call( server_name(), reverseback, infinity ).
      
+
+%% @doc : Profile data marshalling from python to erlang. Return ok.
 profileback() ->
     gen_server:call( server_name(), profileback, infinity ).
      
+
+%% @doc : Apply `Args` and `KWArgs` on `Func` in python worldand return 
+%% the result. Similar to a rpc call.
+%% On success, {ok, Result}
+%% On failure, {error, Reason}
+apply( Func, Args, KWArgs ) ->
+    gen_server:call( server_name(), {apply, Args, KWArgs}, inifinity ).
+
+
+%% @doc : Load configuration informations from pluggdapps web-system.
+%%      settings, complete configuration settings parsed and loaded
+%%      m_subdomains, map of subdomains to web-application instance
+%%      m_scripts, map of script-name to web-application instance
+loadconfig() ->
+    ?MODULE:apply( loadconfig, [], [] ).
+
+%% @doc : Boot loaded pluggdapps web-application.
+bootapps() ->
+    case ?MODULE:apply( bootapps, [], [] ) of
+        {ok, Result} -> ok;
+        {error, Reason} -> ok
+    end.
+
+
+%% @doc : Request port connected to `Pid` to exit normally. Returns ok.
+exit_port(Pid) ->
+    gen_server:call( server_name(), {exit_port, Pid}, infinity ).
+
 
 %% @doc : Erlang does not support native strings. Instead, term_to_binary/1
 %% automagically encodes list of small integers (< 255) as string. Pluggdapps
@@ -129,6 +156,10 @@ handle_call(reverseback, From, State) ->
 
 handle_call(profileback, From, State) ->
     NewState = dispatch_request( From, profileback, [], [], State ),
+    {noreply, NewState};
+
+handle_call({apply, Args, KWArgs}, From, State) ->
+    NewState = dispatch_request( From, apply, Args, KWArgs, State ),
     {noreply, NewState};
 
 handle_call(_Req, _From, State) ->
@@ -308,5 +339,8 @@ loopback_test_() ->
     {ok, {Data, DataStr}} = loopback( {Ref, data_to_string(RefStr)} ),
     [ ?_assertEqual( Ref, Data ),
       ?_assertEqual( RefStr, nstring_to_data( DataStr )) ].
+
+reverseback_test_() ->
+    [ ?_assertEqual( {ok, ok}, reverseback() ) ].
 
 -endif.

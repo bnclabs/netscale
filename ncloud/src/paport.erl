@@ -1,13 +1,13 @@
 -module(paport).
 
--export([ launchport/2, requestport/2, respondport/3 ]).
+-export([ launchport/2, requestport/3, respondport/3 ]).
 
 %% Spawn this ! Connected process for pluggdapps port.
 launchport( Parent, {PortName, PortSettings} ) ->
     Port = open_port( PortName, PortSettings ),
     error_logger:info_msg( "Launched pa-port : ~p, connected process : ~p ~n",
                            [Port, self()] ),
-    ?MODULE:requestport( Parent, Port ).
+    ?MODULE:requestport( Parent, Port, none ).
 
 
 % Request methods from erlang to python,
@@ -15,7 +15,10 @@ launchport( Parent, {PortName, PortSettings} ) ->
 %      close_io
 %      reverseback
 %      profileback
-%
+% Request methods from python to erlang
+%      logerror
+%      loginfo
+%      logwarn
 % Request methods both ways
 %      loopback 
 %      apply
@@ -24,62 +27,75 @@ launchport( Parent, {PortName, PortSettings} ) ->
 %      plugin_method
 
 %% Marshal request from gen_server to pluggdapps.
-requestport( Parent, Port ) ->
+requestport( Parent, Port, none ) ->
     receive
-        { Parent, {From, Method, Args, KWArgs} } ->
-            Data = term_to_binary( {req, Method, Args, KWArgs} ),
-            % io:format( "~p ~n", [Data] ),
-            port_command( Port, Data ),
+        {Parent, {From, Method, Args, KWArgs}} ->
+            port_command( Port, term_to_binary({req, Method, Args, KWArgs}) ),
             ?MODULE:respondport( Parent, Port, From );
 
         {Parent, get_portid} ->
             Parent ! {self(), portid, Port},
-            requestport( Parent, Port );
+            ?MODULE:requestport( Parent, Port, none );
 
-        {Port, {exit_status, Status}} ->
-            error_logger:error_msg(
-                "Pluggdapps port ~p exited with ~p ~n", [Port, Status] ),
-            erlang:exit({port_exit, Status});
+        {Port, {data, Data}} ->
+            PortMsg = binary_to_term( list_to_binary(Data) ),
+            portmessage(
+                {Port, PortMsg}, ?MODULE, requestport, [Parent, Port, none]);
 
-        {Port, eof} ->
-            error_logger:error_msg("Pluggdapps port ~p closed fd ~n", [Port]),
-            erlang:exit({port_exit, eof})
+        OtherMsg -> 
+            portmessage(
+                OtherMsg, ?MODULE, requestport, [Parent, Port, none] )
     end.
 
 
 %% Collect the response back from pluggdapps. Also handle requests from
-%% pluggdapps. All request from pluggdapps must be handle in the context of an
-%% original request from gen_server.
+%% pluggdapps.
 respondport( Parent, Port, From ) ->
     receive
-        { Port, {data, Data}} ->
-            % io:format( "~p ~n", [Data] ),
-            case binary_to_term( list_to_binary(Data) ) of
-                { resp, Response } ->
-                    Parent ! {self(), From, {resp, Response}},
-                    ?MODULE:requestport( Parent, Port );
-                { req, Method, Args, KWArgs } ->
-                    NResp = docommand(Method, Args, KWArgs, From),
-                    port_command( Port, term_to_binary({resp, NResp}) ),
-                    ?MODULE:respondport( Parent, Port, From );
-                { post, Method, Args, KWArgs } ->
-                    docommand(Method, Args, KWArgs, From),
-                    ?MODULE:respondport( Parent, Port, From )
-            end;
-
-        {Parent, get_portid} ->
-            Parent ! {self(), portid, Port},
-            respondport( Parent, Port, From );
-
-        {Port, {exit_status, Status}} ->
-            error_logger:error_msg(
-                "Pluggdapps port ~p exited with ~p ~n", [Port, Status] ),
-            erlang:exit({port_exit, Status});
-
-        {Port, eof} ->
-            error_logger:error_msg("Pluggdapps port ~p closed fd ~n", [Port]),
-            erlang:exit({port_exit, eof})
+        {Port, {data, Data}} ->
+            PortMsg = binary_to_term( list_to_binary(Data) ),
+            portmessage( 
+                {Port, PortMsg}, ?MODULE, respondport, [Parent,Port,From]);
+        OtherMsg -> 
+            portmessage(
+                OtherMsg, ?MODULE, respondport, [Parent, Port, From] )
     end.
+
+
+%% Handle pluggdapps port messages
+portmessage({Port, {exit_status, Status}}, _Mod, _Fun, _Args) ->
+    error_logger:error_msg(
+            "Pluggdapps port ~p exited with ~p ~n", [Port, Status] ),
+    erlang:exit({port_exit, Status});
+
+portmessage({Port, eof}, _Mod, _Fun, _Args) ->
+    error_logger:error_msg("Pluggdapps port ~p closed fd ~n", [Port]),
+    erlang:exit({port_exit, eof});
+
+portmessage({Port, {resp, _Resp}}, Mod, Fun, [Parent, Port, none]) ->
+    error_logger:error_msg(
+        "pa response message received while waiting for gen_server request" ),
+    Mod:Fun( Parent, Port, none );
+
+portmessage({Port, {resp, Response}}, _Mod, _Fun, [Parent, Port, From]) ->
+    Parent ! {self(), From, {resp, Response}},
+    ?MODULE:requestport( Parent, Port, none );
+
+portmessage(
+  {Port, {req, Method, Args, KWArgs}}, Mod, Fun, [Parent, Port, From]) ->
+    NResp = docommand( Method, Args, KWArgs, From ),
+    port_command( Port, term_to_binary({resp, NResp}) ),
+    Mod:Fun( Parent, Port, From );
+
+portmessage(
+  {Port, {post, Method, Args, KWArgs}}, Mod, Fun, [Parent, Port, From]) ->
+    docommand( Method, Args, KWArgs, none ),
+    Mod:Fun( Parent, Port, From );
+
+portmessage(Msg, Mod, Fun, [Parent, Port, From]) ->
+    error_logger:error_msg(
+        "Unable to handle marshalled messasge from pa. ~p ~n", [Msg] ),
+    Mod:Fun( Parent, Port, From ).
 
 
 %%---- Local functions
