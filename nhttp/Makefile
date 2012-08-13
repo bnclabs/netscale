@@ -1,4 +1,4 @@
-# ncloud
+# nhttp
 
 include ../inc.mk
 
@@ -6,7 +6,7 @@ SRCS = $(wildcard src/*.erl)
 OBJS = $(SRCS:src/%.erl=ebin/%.beam)
 TESTSRCS = $(wildcard tests/*erl)
 TESTOBJS = $(TESTSRCS:tests/%.erl=ebin/%.beam)
-APP  = ebin/ncloud.app
+APP  = ebin/nhttp.app
 SRCDEPS = $(SRCS:.erl=.d)
 TESTDEPS = $(TESTSRCS:.erl=.d)
 
@@ -21,7 +21,7 @@ eunit : all $(TESTOBJS)
 
 runeunit : eunit
 	@erl -boot $(ERL_LIBS)/releases/netscale -noshell \
-		 -config $(ERL_LIBS)/_config/test.config -s run_eunit start /a ncloud
+		 -config $(ERL_LIBS)/_config/test.config -s run_eunit start /a nhttp
 
 clean :
 	rm -rf ebin/*.beam ebin/*.app

@@ -6,33 +6,42 @@
       {modules,      [ncloud_app,ndist,nutil,pa,paport,wpool,run_eunit]},
       {mod,          {ncloud_app,[]}},
       {applications, [kernel, stdlib]},
-      {env,          [ {supname, ncloud_sup},
-                       {reload, false},
-                       {pa_inifile, "/home/pratap/dev/netscale/master.ini"},
-                       {num_paports, 2},
-                       {paport_name, 
-                         {spawn_executable, "erlport.py"}},
-                       {paport_sett,
-                         [ {packet, 4},
-                           {args, 
-                             [ "--packet", "4",
-                               "--virtenv", "pa-env/lib/python3.2/site-packages",
-                               "--nouse_stdio"
-                             ]},
-                           exit_status,
-                           eof,
-                           nouse_stdio
-                         ]},
-                       {childspecs,
-                         [{ paport,
-                            {gen_server, start_link, 
-                                [{global,paports}, pa, [], []]},
-                            permanent,
-                            1000,
-                            worker,
-                            [pa]
-                          }] }
-                     ]}
+      {env,          [
+            % Name of root supervisor process.
+            {supname, ncloud_sup},
+            % Whether to periodically check for modified modules (for
+            % development).
+            {reload, false},
+            % Pluggdapps master ini file. Typically to be overriden in the
+            % config file.
+            {pa_inifile, "/home/pratap/dev/netscale/master.ini"},
+            % number of pluggdapps port to open.
+            {num_paports, 2},
+            % Entry point for pluggdapps via erlang's netscale.
+            {paport_name, {spawn_executable, "erlmain.py"}},
+            % Pluggdapps port settings. Can be overriden in the config file.
+            {paport_sett,
+              [ {packet, 4},
+                {args, 
+                  [ "--packet", "4",
+                    "--virtenv", "pa-env/lib/python3.2/site-packages",
+                    "--nouse_stdio"
+                  ]},
+                exit_status,
+                eof,
+                nouse_stdio
+              ]},
+            % Child process to be started by the root supervisor.
+            {childspecs,
+              [{ paport,
+                 {gen_server, start_link, 
+                     [{global,paports}, pa, [], []]},
+                 permanent,
+                 1000,
+                 worker,
+                 [pa]
+               }] }
+         ]}
     ]
 }.
 

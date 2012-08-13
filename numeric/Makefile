@@ -21,7 +21,7 @@ eunit : all $(TESTOBJS)
 
 runeunit : eunit
 	@erl -boot $(ERL_LIBS)/releases/netscale -noshell \
-		 -config $(ERL_LIBS)/_boot/test.config -s run_eunit start /a numeric
+		 -config $(ERL_LIBS)/_config/test.config -s run_eunit start /a numeric
 
 clean :
 	rm -rf ebin/*.beam ebin/*.app
