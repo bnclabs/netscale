@@ -13,8 +13,8 @@
             {num_primefiles, 1000},
             % Number of DETS files to maintain for factorials.
             {num_factorfiles, 1000},
-            % Child process to be started by the root supervisor.
-            {childspecs,
+            % Supervisor child specs.
+            {numeric_sup_childspecs,
               [{ prime, 
                  {gen_server, start_link, 
                      [{global,genprime}, prime, [], []]},
@@ -27,3 +27,5 @@
          ]}
     ]
 }.
+
+% vim: set filetype=erlang:

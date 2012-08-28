@@ -38,6 +38,6 @@ config_change( _Changed, _New, _Old ) ->
 %% Callbacks for supervisor behaviour
 
 init( _Args ) ->
-    {ok, ChildSpecs} = application:get_env( childspecs ),
+    {ok, ChildSpecs} = application:get_env( ncloud_sup_childspecs ),
     {ok, { {one_for_one, ?MAXR, ?MAXT}, ChildSpecs }}.
 

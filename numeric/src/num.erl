@@ -16,23 +16,20 @@
     nPn/1, nCn/1, nPr/2, nCr/2, sumOfnCn/1, permutations/2,
     nthPermutation/3, combinations/2, nthCombination/3  ]).
 
+
 % floor the given floating point number `FNum`.
-floor(FNum) when FNum < 0 ->
+floor(FNum) when FNum >= 0 -> trunc(FNum);
+floor(FNum) ->      % Flooring negative numbers.
     T = trunc(FNum),
     case FNum - T of
         0 -> T;
         _ -> T - 1
-    end;
-
-floor(FNum) -> 
-    trunc(FNum).
+    end.
 
 
 % ceil the given floating point number `FNum`.
-ceil(FNum) when FNum < 0 ->
-    trunc(FNum);
-
-ceil(FNum) ->
+ceil(FNum) when FNum < 0 -> trunc(FNum);
+ceil(FNum) ->       % Ceiling positive numbers.
     T = trunc(FNum),
     case FNum - T of
         0 -> T;

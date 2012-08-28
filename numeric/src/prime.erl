@@ -183,7 +183,7 @@ code_change(_A, _B, _C) ->
 
 % Prime number proc-reference
 server_name() ->
-    {ok, Spec} = application:get_env(?APPNAME, childspecs),
+    {ok, Spec} = application:get_env(?APPNAME, numeric_sup_childspecs),
     {_M, _F, [A | _As]} = element(2, proplists:lookup(prime, Spec)),
     A.
 

@@ -8,10 +8,10 @@
       {applications, [kernel, stdlib]},
       {env,          [
             % Name of the root supervisor process for this application
-            {supname, nhttp_sup},
+            { supname, nhttp_sup},
 
-            % Child process that are to be started by root supervisor
-            {childspecs,
+            % Childspecs for nhttp_sup process.
+            { nhttp_sup_childspecs,
               [{ nhttpd,
                    {gen_server, start_link, 
                        [ {global,nhttpd},
@@ -27,4 +27,4 @@
     ]
 }.
 
-%% vim : set filetype=erlang %%
+% vim: set filetype=erlang:

@@ -14,14 +14,14 @@ TESTDEPS = $(TESTSRCS:.erl=.d)
 
 all : make-ebin $(OBJS) $(APP)
 
-make-ebin :
-	@mkdir -p ebin
-
 eunit : all $(TESTOBJS)
 
 runeunit : eunit
 	@erl -boot $(ERL_LIBS)/releases/netscale -noshell \
 		 -config $(ERL_LIBS)/_config/test.config -s run_eunit start /a ncloud
+
+make-ebin :
+	@mkdir -p ebin
 
 clean :
 	rm -rf ebin/*.beam ebin/*.app

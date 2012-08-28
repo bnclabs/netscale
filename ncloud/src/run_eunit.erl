@@ -1,5 +1,14 @@
 -module(run_eunit).
 
+%% This program is invoked as 
+%%      erl -boot $NSLIB/releases/netscale -config $NSLIB/_root/test.config
+%%          -noshell -s run_eunit start <options>
+%% An alias for this can be create as,        
+%%      nsut='erl -boot $NSLIB/releases/netscale -config $NSLIB/_root/test.config
+%%                -noshell -s run_eunit start '
+%%
+%% nsut [/v] [/all] [/m <mod>] [/a <appname>]
+
 -include_lib("eunit/include/eunit.hrl").
 -export([ start/1 ]).
 
@@ -36,7 +45,7 @@ start(Args) ->
     {Options, Tests} = options(Args, [], []),
     case lists:member( all, Options ) of
         true ->
-            SystemApps = [stdlib, kernel],
+            SystemApps = [stdlib, kernel, sasl],
             Apps = proplists:get_keys( application:loaded_applications() ),
             test_apps( Apps -- SystemApps, Options);
         false ->

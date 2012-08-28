@@ -1,0 +1,27 @@
+Environment :
+-------------
+  NSLIB - defines the path to netscale source library (or repository).
+
+Application directory :
+-----------------------
+  Applications must be named using alphanumeric characters and the
+  sub-directory in the source tree, containing the application code, must
+  also have same name.
+
+Application supervisor :
+------------------------
+  Child specifications for application's supervisors are expected to be
+  defined in the corresponding application's .app directory. The key,value
+  pair defining the childspec should be of the form,
+
+    { <supervisor-proc-name>_sup_childspecs, <childspecs> }
+
+Standard macros :
+-----------------
+
+  Every application must define <appname>.hrl file under <appname>/include/
+  path. This header file will be used by every module defined under the
+  application.
+
+  ?APPNAME - application name.
+

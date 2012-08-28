@@ -16,7 +16,8 @@
 -export([ init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
           code_change/3 ]).
 %% Exported APIs
--export([ pa_dir/0, server_name/0,  getstate/0, exit_port/1,
+-export([ pa_dir/0, server_name/0,  getstate/0, exit_port/1, pyapply/3,
+          loadconfig/0, bootapps/0,
           % Test interface
           loopback/1, reverseback/0, profileback/0,
           data_to_string/1, data_to_string/2, data_to_string/3,
@@ -41,7 +42,7 @@ pa_dir() ->
 
 %% @doc : `paports` server reference.
 server_name() ->
-    {ok, Spec} = application:get_env(?APPNAME, childspecs),
+    {ok, Spec} = application:get_env(?APPNAME, ncloud_sup_childspecs),
     {_M, _F, [A | _As]} = element(2, proplists:lookup(paport, Spec)),
     A.
 
@@ -80,8 +81,8 @@ profileback() ->
 %% the result. Similar to a rpc call.
 %% On success, {ok, Result}
 %% On failure, {error, Reason}
-apply( Func, Args, KWArgs ) ->
-    gen_server:call( server_name(), {apply, Args, KWArgs}, inifinity ).
+pyapply( Func, Args, KWArgs ) ->
+    gen_server:call( server_name(), {pyapply, Func, Args, KWArgs}, inifinity ).
 
 
 %% @doc : Load configuration informations from pluggdapps web-system.
@@ -89,13 +90,13 @@ apply( Func, Args, KWArgs ) ->
 %%      m_subdomains, map of subdomains to web-application instance
 %%      m_scripts, map of script-name to web-application instance
 loadconfig() ->
-    ?MODULE:apply( loadconfig, [], [] ).
+    ?MODULE:pyapply( loadconfig, [], [] ).
 
 %% @doc : Boot loaded pluggdapps web-application.
 bootapps() ->
-    case ?MODULE:apply( bootapps, [], [] ) of
-        {ok, Result} -> ok;
-        {error, Reason} -> ok
+    case ?MODULE:pyapply( bootapps, [], [] ) of
+        {ok, _Result} -> ok;
+        {error, _Reason} -> ok
     end.
 
 
@@ -158,8 +159,8 @@ handle_call(profileback, From, State) ->
     NewState = dispatch_request( From, profileback, [], [], State ),
     {noreply, NewState};
 
-handle_call({apply, Args, KWArgs}, From, State) ->
-    NewState = dispatch_request( From, apply, Args, KWArgs, State ),
+handle_call({pyapply, Func, Args, KWArgs}, From, State) ->
+    NewState = dispatch_request( From, pyapply, Func, Args, KWArgs, State ),
     {noreply, NewState};
 
 handle_call(_Req, _From, State) ->

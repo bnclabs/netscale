@@ -21,7 +21,7 @@ launchport( Parent, {PortName, PortSettings} ) ->
 %      logwarn
 % Request methods both ways
 %      loopback 
-%      apply
+%      pyapply
 %      query_plugin
 %      plugin_attribute
 %      plugin_method

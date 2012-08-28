@@ -2,6 +2,7 @@
 %%! -sname script_peul
 
 -include_lib("ncloud/include/ncloud.hrl").
+-define( NUMERIC_APP, numeric ).
 
 -mode(compile).
 
@@ -34,8 +35,7 @@ problem( 7 ) ->
     lists:last( num:primes(10001) );
 
 problem( 8 ) ->
-    {ok, [Digits]} = file:consult("/home/pratap/dev/blob/eulerdata/prob8.txt"),
-    lists:max( digits5( Digits, [] ));
+    lists:max( digits5( consult_file( "prob8.txt" ), [] )).
             
 problem( 9 ) ->
     Xs = [ {A, B, 1000-A-B} || A <- lists:seq(4,1000), B <- lists:seq(A,1000) ],
@@ -48,7 +48,7 @@ problem( 10 ) ->
     lists:sum( num:primes(Fn) );
 
 problem( 11 ) ->
-    {ok, [_Arr]} = file:consult("/home/pratap/dev/blob/eulerdata/prob11.txt"),
+    _Arr = consult_file( "prob11.txt" ),
     "To be implemented";
 
 problem( 12 ) ->
@@ -56,7 +56,7 @@ problem( 12 ) ->
     num:sumOfN( length( num:triangleNumbers( Pred )) + 1 );
 
 problem( 13 ) ->
-    {ok, Numbers} = file:consult("/home/pratap/dev/blob/eulerdata/prob13.txt"),
+    Numbers = consult_file( "prob13.txt" ),
     {Res, _} = lists:split(10, ?ITOA( num:sumOfDigits( Numbers ))),
     ?ATOI( Res );
 
@@ -74,7 +74,7 @@ problem( 17 ) ->
     "To be implemented";
 
 problem( 18 ) ->
-    {ok, Triangle} = file:consult("/home/pratap/dev/blob/eulerdata/prob18.txt"),
+    Triangle = consult_file( "prob18.txt" ),
     ReduceFn = fun 
                 (Y, A) ->
                     S = lists:zipwith( fun(J,K) -> J+K end, Y, A ),
@@ -101,7 +101,7 @@ problem( 21 ) ->
     lists:sum( num:amicables( fun(X, _) -> X < 10000 end ));
 
 problem( 22 ) ->
-    {ok, [Names]} = file:consult("/home/pratap/dev/blob/eulerdata/prob22.txt"),
+    Names = consult_file( "prob22.txt" ),
     Index = lists:seq( 1, length(Names) ),
     NormFn = fun(X) -> X - 64 end,
     Fn = fun({I, S}) -> I * lists:sum( lists:map( NormFn, S )) end,
@@ -132,3 +132,12 @@ longestCollatz([X | Xs], {_, Len}=Res) ->
         _Ls -> longestCollatz( Xs, Res )
     end.
 
+priv_projeuler( File ) ->
+    filename:join([ 
+            filename:dirname( code:priv_dir( ?NUMERIC_APP )),
+            "projeuler", File
+    ]).
+
+consult_file( File ) ->
+    {ok, [Term]} = file:consult( priv_projeuler( File )),
+    Term.

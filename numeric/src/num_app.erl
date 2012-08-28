@@ -3,6 +3,7 @@
 
 % App behaviour
 -export([ start/2, prep_stop/1, stop/1, config_change/3 ]).
+
 % Supervisor behaviour
 -export([ init/1 ]).
 
@@ -37,5 +38,5 @@ config_change( _Changed, _New, _Old ) ->
 %% Callbacks for supervisor behaviour
 
 init( _Args ) ->
-    {ok, ChildSpecs} = application:get_env( childspecs ),
+    {ok, ChildSpecs} = application:get_env( numeric_sup_childspecs ),
     {ok, { {one_for_one, ?MAXR, ?MAXT}, ChildSpecs }}.

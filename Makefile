@@ -2,12 +2,13 @@ export NSDIR := $(CURDIR)
 
 include inc.mk
 
-.PHONY : $(APPS) $(CHILDAPP_TARGETS) eunit release release% clean cleanall 
+.PHONY : $(APPS) $(APPTARGETS) eunit release release% 
+.PHONY : clean cleanlogs cleanall 
 
 all :
 	@for dir in $(APPS); do $(MAKE) -C $$dir; done
 
-$(APPS) $(CHILDAPP_TARGETS) :
+$(APPS) $(APPTARGETS) :
 	@$(MAKE) -C $(call ctarget,$@)
 
 eunit :
@@ -19,11 +20,15 @@ runeunit :
 release release% :
 	$(MAKE) -C releases $(word 2,$(call ctarget,$@))
 
-clean :
-	rm -rf `find ./ -name erl_crash.dump`
+clean : cleandumps
 	@for dir in $(APPS); do $(MAKE) -C $$dir clean; done
 	$(MAKE) -C releases clean
 
-cleanall :
-	@for dir in $(APPS); do $(MAKE) -C $$dir cleanall; done
+cleandumps :
+	rm -rf `find ./ -name erl_crash.dump`
+
+cleanlogs :
+	rm -rf $(LOGDIR)/*
+
+cleanall : cleandumps cleanlogs clean
 

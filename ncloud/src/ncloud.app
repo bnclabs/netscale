@@ -12,9 +12,6 @@
             % Whether to periodically check for modified modules (for
             % development).
             {reload, false},
-            % Pluggdapps master ini file. Typically to be overriden in the
-            % config file.
-            {pa_inifile, "/home/pratap/dev/netscale/master.ini"},
             % number of pluggdapps port to open.
             {num_paports, 2},
             % Entry point for pluggdapps via erlang's netscale.
@@ -24,6 +21,7 @@
               [ {packet, 4},
                 {args, 
                   [ "--packet", "4",
+                    "--config-ini", "/home/pratap/dev/netscale/master.ini",
                     "--virtenv", "pa-env/lib/python3.2/site-packages",
                     "--nouse_stdio"
                   ]},
@@ -31,8 +29,8 @@
                 eof,
                 nouse_stdio
               ]},
-            % Child process to be started by the root supervisor.
-            {childspecs,
+            % Supervisor child specs.
+            {ncloud_sup_childspecs,
               [{ paport,
                  {gen_server, start_link, 
                      [{global,paports}, pa, [], []]},
@@ -45,4 +43,4 @@
     ]
 }.
 
-%% vim : set filetype=erlang
+% vim: set filetype=erlang:
