@@ -7,22 +7,32 @@
       {mod,          {nhttp_app,[]}},
       {applications, [kernel, stdlib]},
       {env,          [
-            % Name of the root supervisor process for this application
+            % Name of the root supervisor process for this application.
             { supname, nhttp_sup},
-
+            % Port number to bind and listen for client http connection.
+            { listenport, 80},
+            % Listen options.
+            { listenopts,
+                [ binary,
+                  {backlog, 1000},
+                  {packet, http},
+                  {active, once}
+                ]},
+            % Accept options
+            { acceptopts, [] },
+            % Simultaneous connections to maintain. As many procs will be
+            % accepting for new connections.
+            { n_connections, 1000 },
             % Childspecs for nhttp_sup process.
             { nhttp_sup_childspecs,
-              [{ nhttpd,
-                   {gen_server, start_link, 
-                       [ {global,nhttpd},
-                         nhttpd,
-                         [ {configfile, "_config/nhttpd.config"} ],
-                         [] ]},
-                   permanent,
-                   1000,
-                   worker,
-                   [pa]
-                }] }
+                [{ child_nhttpd,
+                     {gen_server, start_link, 
+                         [ {global,proc_nhttpd}, nhttpd, [], [] ]},
+                     permanent,
+                     1000,
+                     worker,
+                     [nhttpd]
+                  }] }
             ]}
     ]
 }.

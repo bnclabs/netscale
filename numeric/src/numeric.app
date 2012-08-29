@@ -15,9 +15,9 @@
             {num_factorfiles, 1000},
             % Supervisor child specs.
             {numeric_sup_childspecs,
-              [{ prime, 
+              [{ child_prime, 
                  {gen_server, start_link, 
-                     [{global,genprime}, prime, [], []]},
+                     [{global,proc_prime}, prime, [], []]},
                  permanent,
                  5000,
                  worker,

@@ -31,9 +31,9 @@
               ]},
             % Supervisor child specs.
             {ncloud_sup_childspecs,
-              [{ paport,
+              [{ child_pa,
                  {gen_server, start_link, 
-                     [{global,paports}, pa, [], []]},
+                     [{global,proc_pa}, pa, [], []]},
                  permanent,
                  1000,
                  worker,
