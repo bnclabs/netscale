@@ -11,7 +11,7 @@
 export ERL_LIBS := $(NSDIR)
 
 # List of Applications
-export APPS     := ncloud numeric
+export APPS     := ncloud nhttp numeric
 
 # List of .app files for each application
 export APPFILES := $(addprefix $(NSDIR)/,$(join $(APPS),$(APPS:%=/ebin/%.app)))

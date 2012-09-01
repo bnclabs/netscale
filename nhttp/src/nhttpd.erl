@@ -4,93 +4,126 @@
 -include_lib( "eunit/include/eunit.hrl" ).
 -include_lib( "nhttp/include/nhttp.hrl" ).
 
+-define( DAEMON_NAME, {global, nhttpd} ).
+
 %% gen_server behaviour.
 -export([ init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
           code_change/3 ]).
+%% API Exports
+-export([ getstate/0, daemon/0, conn_accepted/2 ]).
 
-doaccept( Listen ) ->
-    {ok, Socket} = gen_tcp:accept( Listen ),
-    gen_server:start_link( Socket );
+%% @doc: Internal server state for `nhttpd`.
+getstate() ->
+    gen_server:call( ?DAEMON_NAME, getstate ).
 
+%% @doc: Only one `nhttps` process (the daemon) waits accepting a new connection
+%% at a time. When a connection is accepted a fresh `nhttps` process should be
+%% started.
+daemon() ->
+    gen_server:cast( ?DAEMON_NAME, daemon ).
+
+%% @doc: `nhttps` server has accepted a new connection and informs the same
+%% to the master-daemon.
+conn_accepted( Pid, Socket ) ->
+    gen_server:cast( ?DAEMON_NAME, {conn_accepted,Pid,Socket} ).
 
 %%---- Callbacks for gen_server behaviour
 
-init( Args ) ->
-    Options = read_configfile( Args ),
-    {port, Port} = proplists:lookup( port, Options ),
-    {listenopts, ListenOpts} = proplists:lookup( listenopts, Options ),
+init( _Args ) ->
+    process_flag( trap_exit, true ),
+    {ok, NConn} = application:get_env( ?APPNAME, n_connections ),
+    {ok, Port} = application:get_env( ?APPNAME, listenport ),
+    {ok, ListenOpts} = application:get_env( ?APPNAME, listenopts ),
+    {ok, AcceptOpts} = application:get_env( ?APPNAME, acceptopts ),
+    State = #nhttpd{ n_conn=NConn, port=Port, lopts=ListenOpts,
+                     aopts=AcceptOpts },
     case gen_tcp:listen( Port, ListenOpts ) of
-        {ok, Listen} ->
-            {ok, Socket} = gen_tcp:accept( Listen ),
-            loop( Socket );
         {error, Reason} ->
-            error_logger:error_msg( "nhttpd listen failure on port", [Port] )
+            error_logger:error_msg( "nhttp listen error ~p~n", [Reason] ),
+            {stop, Reason};
+        {ok, LSock}     ->
+            {ok, start_daemon( State, LSock )}
     end.
 
 
 %%-- Calls
 
-handle_call(_Req, _From, State) ->
+handle_call(getstate, _From, State) ->
+    {reply, State, State};
+
+handle_call(Req, From, State) ->
+    error_logger:error_msg( "Unknown call ~p from ~p ~n", [Req, From] ),
     {noreply, State}.
 
 
 %%-- Casts
 
-handle_cast(Req, _State) ->
-    error_logger:error_msg( "Cast request ~s not supported", [Req] ).
+handle_cast(daemon, State) ->
+    {noreply, start_daemon( State )};
+
+handle_cast({conn_accepted, Pid, Socket}, #nhttpd{conns=Conns}=State) ->
+    NewState = State#nhttpd{ conns=[{Pid,Socket} | Conns] },
+    {noreply, start_daemon( NewState )};
+
+handle_cast(Req, State) ->
+    error_logger:error_msg( "Cast request ~s not supported", [Req] ),
+    {noreply, State}.
 
 
 %%-- Infos
 
-handle_info(timeout, _State) ->
-    error_logger:error_msg( "Timed out !!" );
+handle_info(timeout, State) ->
+    stop_daemon( State ),
+    {stop, "Timed out occured, stopping `nhttpd` daemon", State};
 
-handle_info(Info, _State) ->
-    error_logger:error_msg( "Unable to handle info ~s ~n", [Info] ).
+handle_info({'EXIT',Pid,_Reason}, State) ->
+    if Pid == State#nhttpd.daemon -> {noreply, start_daemon(State)};
+       true -> {noreply, State}
+    end;
+
+handle_info(Info, State) ->
+    Msg = io_lib:format( "Unable to handle Info ~p, stopping daemon", [Info] ),
+    stop_daemon( State ),
+    {stop, Msg, State}.
 
 
-%%-- terminate
+%%-- terminate.
+%%  Note that for any other reason than normal, shutdown, or {shutdown,Term}
+%%  the gen_server is  assumed to terminate due to an error and an error 
+%%  report is issued using error_logger:format/2.
 
 terminate(normal, State) ->
-    stop_servers( State#httpd.spids ),
+    stop_daemon( State ),
     ok;
 terminate(shutdown, State) ->
-    stop_servers( State#httpd.spids ),
+    stop_daemon( State ),
     ok;
 terminate({shutdown, _Reason}, State) ->
-    stop_servers( State#httpd.spids ),
+    stop_daemon( State ),
     ok;
-terminate(_Reason, State) ->        % Error
-    stop_servers( State#httpd.spids ),
+terminate(_Error, State) ->        % Error
+    stop_daemon( State ),
     ok.
 
 
 code_change(_A, _B, _C) ->
-    erlang:error("Code change function not implemented.").
+    error_logger:error_msg("Code change function not implemented.").
 
 
-%%---- local functions
+%%---- The daemon
 
-read_configfile(Args) ->
-    {configfile, ConfigFile} = proplists:lookup( configfile, Args ),
-    ConfigFileA = filename:join([
-                    filename:dirname( code:lib_dir( ?APPNAME )),
-                    ConfigFile ]),
-    [Options] = file:consult( ConfigFileA ),
-    Options.
+start_daemon( State ) -> start_daemon( State, State#nhttpd.lsock ).
 
+start_daemon( State, LSock ) ->
+    {ok, Pid} = gen_server:start_link( nhttps, [LSock], [] ),
+    nhttps:doaccept( Pid ),
+    State#nhttpd{ lsock=LSock, daemon=Pid }.
 
-loop(Socket) ->
-    receive
-        {tcp, Socket, Bin} ->
-            io:format("Server received binary = ~p~n" ,[Bin]),
-            Str = binary_to_term(Bin),
-            io:format("Server (unpacked) ~p~n" ,[Str]),
-            Reply = lib_misc:string2value(Str),
-            io:format("Server replying = ~p~n" ,[Reply]),
-            gen_tcp:send(Socket, term_to_binary(Reply)),
-            loop(Socket);
-        {tcp_closed, Socket} ->
-            io:format("Server socket closed ~n")
-    end.
+stop_connections([]) -> ok;
+stop_connections([{Pid,_Sock} | Conns]) ->
+    exit(Pid, shutdown),
+    stop_connections( Conns ).
 
+stop_daemon(State) ->
+    gen_tcp:close( State#nhttpd.lsock ),
+    stop_connections( State#nhttpd.conns ).

@@ -1,10 +1,11 @@
 { release, 
-    { "nscloud", "0.1" },
+    { "netscale", "0.1" },
     { erts, "5.8.5" },
     [ {kernel,  "2.14.5"},
       {stdlib,  "1.17.5"},
       {sasl,    "2.1.10"},
       {ncloud,  "0.1", permanent},
+      {nhttp,   "0.1", permanent},
       {numeric, "0.1", permanent}
     ]
 }.

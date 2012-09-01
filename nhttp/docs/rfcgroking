@@ -1,0 +1,260 @@
+RFCs involved with http (a.k.a) web server.
+
+Main specifications:
+====================
+
+2616 Hypertext Transfer Protocol -- HTTP/1.1.
+    R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter, P. Leach,
+        T. Berners-Lee.
+    June 1999.
+    (Format: TXT=422317, PS=5529857, PDF=550558 bytes)
+    (Obsoletes RFC2068)
+    (Updated by RFC2817, RFC5785, RFC6266, RFC6585)
+    (Status: DRAFT STANDARD)
+
+    The Hypertext Transfer Protocol (HTTP) is an application-level protocol
+    for distributed, collaborative, hypermedia information systems. It is a
+    generic, stateless, protocol which can be used for many tasks beyond its
+    use for hypertext, such as name servers and distributed object management
+    systems, through extension of its request methods, error codes and
+    headers. A feature of HTTP is the typing and negotiation of data
+    representation, allowing systems to be built independently of the data
+    being transferred.
+
+    HTTP has been in use by the World-Wide Web global information initiative
+    since 1990. This specification defines the protocol referred to as
+    "HTTP/1.1", and is an update to RFC 2068.
+
+    An errata to RFC2616 is available, it collects also errata to RFC2617
+
+2617 HTTP Authentication: Basic and Digest Access Authentication.
+    J.  Franks, P. Hallam-Baker, J. Hostetler, S. Lawrence, P. Leach,
+        A.  Luotonen, L. Stewart.
+    June 1999.
+    (Format: TXT=77638 bytes)
+    (Obsoletes RFC2069)
+    (Status: DRAFT STANDARD)
+
+    "HTTP/1.0", includes the specification for a Basic Access Authentication
+    scheme. This scheme is not considered to be a secure method of user
+    authentication (unless used in conjunction with some external secure
+    system such as SSL [5]), as the user name and password are passed over
+    the network as cleartext.
+
+    This document also provides the specification for HTTP's authentication
+    framework, the original Basic authentication scheme and a scheme based on
+    cryptographic hashes, referred to as "Digest Access Authentication". It is
+    therefore also intended to serve as a replacement for RFC 2069 [6]. Some
+    optional elements specified by RFC 2069 have been removed from this
+    specification due to problems found since its publication; other new
+    elements have been added for compatibility, those new elements have been
+    made optional, but are strongly recommended.
+
+    Like Basic, Digest access authentication verifies that both parties to a
+    communication know a shared secret (a password); unlike Basic, this
+    verification can be done without sending the password in the clear, which
+    is Basic's biggest weakness. As with most other authentication protocols,
+    the greatest sources of risks are usually found not in the core protocol
+    itself but in policies and procedures surrounding its use.
+
+2145 Use and Interpretation of HTTP Version Numbers.
+    J. C. Mogul, R.  Fielding, J. Gettys, H. Frystyk.
+    May 1997.
+    (Format: TXT=13659 bytes)
+    (Status: INFORMATIONAL)
+
+    HTTP request and response messages include an HTTP protocol version
+    number. Some confusion exists concerning the proper use and interpretation
+    of HTTP version numbers, and concerning interoperability of HTTP
+    implementations of different protocol versions. This document is an
+    attempt to clarify the situation.
+
+2109 HTTP State Management Mechanism. D. Kristol, L. Montulli.
+     February 1997. (Format: TXT=43469 bytes) (Obsoleted by RFC2965)
+     (Status: HISTORIC)
+
+    This document specifies a way to create a stateful session with HTTP
+    requests and responses. It describes two new headers, Cookie and
+    Set-Cookie, which carry state information between participating origin
+    servers and user agents. The method described here differs from Netscape's
+    Cookie proposal, but it can interoperate with HTTP/1.0 user agents that
+    use Netscape's method. (See the HISTORICAL section.)
+
+    Although obsoleted HTTP working group seem to stick with it ???
+
+    RFC-6265 HTTP State Management Mechanism.
+        A. Barth.
+        April 2011.
+        (Format: TXT=79724 bytes)
+        (Obsoletes RFC2965)
+        (Status: PROPOSED STANDARD)
+
+2047 MIME (Multipurpose Internet Mail Extensions) Part Three: Message
+     Header Extensions for Non-ASCII Text.
+    K. Moore.
+    November 1996.
+    (Format: TXT=33262 bytes)
+    (Obsoletes RFC1521, RFC1522, RFC1590)
+    (Updated by RFC2184, RFC2231)
+    (Status: DRAFT STANDARD)
+
+    HTTP protocol is based on MIME format. Understanding the philosophy behind
+    MIME format will throw some light on how HTTP inter-operates with other
+    MIME based protocols like SMTP, NNTP etc ...
+
+2396 Uniform Resource Identifiers (URI): Generic Syntax.
+    T.  Berners-Lee, R. Fielding, L. Masinter.
+    August 1998.
+    (Format: TXT=83639 bytes)
+    (Obsoleted by RFC3986)
+    (Updates RFC1808, RFC1738)
+    (Updated by RFC2732)
+    (Status: DRAFT STANDARD)
+
+Date formats :
+==============
+
+0850 Standard for interchange of USENET messages. M.R. Horton. June
+     1983. (Format: TXT=43871 bytes) (Obsoleted by RFC1036) (Status:
+     UNKNOWN)
+
+0822 STANDARD FOR THE FORMAT OF ARPA INTERNET TEXT MESSAGES. D.
+     Crocker. August 1982. (Format: TXT=106299 bytes) (Obsoletes RFC0733)
+     (Obsoleted by RFC2822) (Updated by RFC1123, RFC2156, RFC1327,
+     RFC1138, RFC1148) (Also STD0011) (Status: STANDARD)
+
+1123 Requirements for Internet Hosts - Application and Support. R.
+     Braden, Ed.. October 1989. (Format: TXT=245503 bytes) (Updates
+     RFC0822) (Updated by RFC1349, RFC2181, RFC5321, RFC5966) (Also
+     STD0003) (Status: STANDARD)
+
+Additional:
+===========
+
+1945 Hypertext Transfer Protocol -- HTTP/1.0. T. Berners-Lee, R.
+     Fielding, H. Frystyk. May 1996. (Format: TXT=137582 bytes) (Status:
+     INFORMATIONAL)
+
+2169 A Trivial Convention for using HTTP in URN Resolution. R. Daniel.
+     June 1997. (Format: TXT=17763 bytes) (Status: EXPERIMENTAL)
+
+2227 Simple Hit-Metering and Usage-Limiting for HTTP. J. Mogul, P.
+     Leach. October 1997. (Format: TXT=85127 bytes) (Status: PROPOSED
+     STANDARD)
+
+2295 Transparent Content Negotiation in HTTP. K. Holtman, A. Mutz.
+     March 1998. (Format: TXT=125130 bytes) (Status: EXPERIMENTAL)
+
+2296 HTTP Remote Variant Selection Algorithm -- RVSA/1.0. K. Holtman,
+     A. Mutz. March 1998. (Format: TXT=26932 bytes) (Status: EXPERIMENTAL)
+
+2585 Internet X.509 Public Key Infrastructure Operational Protocols:
+     FTP and HTTP. R. Housley, P. Hoffman. May 1999. (Format: TXT=14813
+     bytes) (Status: PROPOSED STANDARD)
+
+2774 An HTTP Extension Framework. H. Nielsen, P. Leach, S. Lawrence.
+     February 2000. (Format: TXT=39719 bytes) (Status: EXPERIMENTAL)
+
+2817 Upgrading to TLS Within HTTP/1.1. R. Khare, S. Lawrence. May
+     2000. (Format: TXT=27598 bytes) (Updates RFC2616) (Status: PROPOSED
+     STANDARD)
+
+2818 HTTP Over TLS. E. Rescorla. May 2000. (Format: TXT=15170 bytes)
+     (Updated by RFC5785) (Status: INFORMATIONAL)
+
+2935 Internet Open Trading Protocol (IOTP) HTTP Supplement. D.
+     Eastlake 3rd, C. Smith. September 2000. (Format: TXT=16168 bytes)
+     (Status: PROPOSED STANDARD)
+
+2936 HTTP MIME Type Handler Detection. D. Eastlake 3rd, C. Smith, D.
+     Soroka. September 2000. (Format: TXT=25238 bytes) (Status:
+     INFORMATIONAL)
+
+2964 Use of HTTP State Management. K. Moore, N. Freed. October 2000.
+     (Format: TXT=18899 bytes) (Also BCP0044) (Status: BEST CURRENT
+     PRACTICE)
+
+3143 Known HTTP Proxy/Caching Problems. I. Cooper, J. Dilley. June
+     2001. (Format: TXT=57117 bytes) (Status: INFORMATIONAL)
+
+3205 On the use of HTTP as a Substrate. K. Moore. February 2002.
+     (Format: TXT=34785 bytes) (Also BCP0056) (Status: BEST CURRENT
+     PRACTICE)
+
+3229 Delta encoding in HTTP. J. Mogul, B. Krishnamurthy, F. Douglis,
+     A. Feldmann, Y. Goland, A. van Hoff, D. Hellerstein. January 2002.
+     (Format: TXT=111953 bytes) (Status: PROPOSED STANDARD)
+
+3230 Instance Digests in HTTP. J. Mogul, A. Van Hoff. January 2002.
+     (Format: TXT=26846 bytes) (Status: PROPOSED STANDARD)
+
+3310 Hypertext Transfer Protocol (HTTP) Digest Authentication Using
+     Authentication and Key Agreement (AKA). A. Niemi, J. Arkko, V.
+     Torvinen. September 2002. (Format: TXT=36985 bytes) (Status:
+     INFORMATIONAL)
+
+4130 MIME-Based Secure Peer-to-Peer Business Data Interchange Using
+     HTTP, Applicability Statement 2 (AS2). D. Moberg, R. Drummond. July
+     2005. (Format: TXT=99857 bytes) (Status: PROPOSED STANDARD)
+
+4169 Hypertext Transfer Protocol (HTTP) Digest Authentication Using
+     Authentication and Key Agreement (AKA) Version-2. V. Torvinen, J.
+     Arkko, M. Naslund. November 2005. (Format: TXT=26429 bytes) (Status:
+     INFORMATIONAL)
+
+4229 HTTP Header Field Registrations. M. Nottingham, J. Mogul.
+     December 2005. (Format: TXT=70879 bytes) (Status: INFORMATIONAL)
+
+4236 HTTP Adaptation with Open Pluggable Edge Services (OPES). A.
+     Rousskov, M. Stecher. November 2005. (Format: TXT=53512 bytes)
+     (Status: PROPOSED STANDARD)
+
+4918 HTTP Extensions for Web Distributed Authoring and Versioning
+     (WebDAV). L. Dusseault, Ed.. June 2007. (Format: TXT=276352 bytes)
+     (Obsoletes RFC2518) (Updated by RFC5689) (Status: PROPOSED STANDARD)
+
+5789 PATCH Method for HTTP. L. Dusseault, J. Snell. March 2010.
+     (Format: TXT=21706 bytes) (Status: PROPOSED STANDARD)
+
+5843 Additional Hash Algorithms for HTTP Instance Digests. A. Bryan.
+     April 2010. (Format: TXT=6731 bytes) (Status: INFORMATIONAL)
+
+5861 HTTP Cache-Control Extensions for Stale Content. M. Nottingham.
+     May 2010. (Format: TXT=10359 bytes) (Status: INFORMATIONAL)
+
+5985 HTTP-Enabled Location Delivery (HELD). M. Barnes, Ed.. September
+     2010. (Format: TXT=86914 bytes) (Status: PROPOSED STANDARD)
+
+5987 Character Set and Language Encoding for Hypertext Transfer
+     Protocol (HTTP) Header Field Parameters. J. Reschke. August 2010.
+     (Format: TXT=20108 bytes) (Status: PROPOSED STANDARD)
+
+5989 A SIP Event Package for Subscribing to Changes to an HTTP
+     Resource. A.B. Roach. October 2010. (Format: TXT=40571 bytes)
+     (Status: PROPOSED STANDARD)
+
+6155 Use of Device Identity in HTTP-Enabled Location Delivery (HELD).
+     J. Winterbottom, M. Thomson, H. Tschofenig, R. Barnes. March 2011.
+     (Format: TXT=58542 bytes) (Status: PROPOSED STANDARD)
+
+6202 Known Issues and Best Practices for the Use of Long Polling and
+     Streaming in Bidirectional HTTP. S. Loreto, P. Saint-Andre, S.
+     Salsano, G. Wilkins. April 2011. (Format: TXT=44724 bytes) (Status:
+     INFORMATIONAL)
+
+6249 Metalink/HTTP: Mirrors and Hashes. A. Bryan, N. McNab, T.
+     Tsujikawa, P. Poeml, H. Nordstrom. June 2011. (Format: TXT=45303
+     bytes) (Status: PROPOSED STANDARD)
+
+6266 Use of the Content-Disposition Header Field in the Hypertext
+     Transfer Protocol (HTTP). J. Reschke. June 2011. (Format: TXT=26080
+     bytes) (Updates RFC2616) (Status: PROPOSED STANDARD)
+
+6546 Transport of Real-time Inter-network Defense (RID) Messages over
+     HTTP/TLS. B. Trammell. April 2012. (Format: TXT=19114 bytes)
+     (Obsoletes RFC6046) (Status: PROPOSED STANDARD)
+
+6585 Additional HTTP Status Codes. M. Nottingham, R. Fielding. April
+     2012. (Format: TXT=17164 bytes) (Updates RFC2616) (Status: PROPOSED
+     STANDARD)
+

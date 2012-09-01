@@ -163,20 +163,22 @@ handle_call({pyapply, Func, Args, KWArgs}, From, State) ->
     NewState = dispatch_request( From, pyapply, Func, Args, KWArgs, State ),
     {noreply, NewState};
 
-handle_call(_Req, _From, State) ->
+handle_call(Req, From, State) ->
+    error_logger:error_msg( "Unknown call ~p from ~p ~n", [Req, From] ),
     {noreply, State}.
 
 
 %%-- Casts
 
-handle_cast(Req, _State) ->
-    error_logger:error_msg( "Cast request ~s not supported", [Req] ).
+handle_cast(Req, State) ->
+    error_logger:error_msg( "Cast request ~s not supported", [Req] ),
+    {noreply, State}.
 
 
 %%-- Infos
 
 handle_info( timeout, _State ) ->
-    error_logger:error_msg( "Timed out !!" );
+    error_logger:error_msg( "Timeout out occured" );
 
 %% Asynchronous response
 handle_info( {Pid, From, {resp, Response}}, #pastate{readyq=ReadyQ}=State ) ->
@@ -197,10 +199,13 @@ handle_info({'EXIT', Pid, Reason}, State) ->
     {noreply, NewState};
 
 handle_info(Info, _State) ->
-    error_logger:error_msg( "Unable to handle info ~s ~n", [Info] ).
+    error_logger:error_msg( "Unable to handle info ~p ~n", [Info] ).
 
 
-%%-- terminate
+%%-- terminate.
+%%  Note that for any other reason than normal, shutdown, or {shutdown,Term}
+%%  the gen_server is  assumed to terminate due to an error and an error 
+%%  report is issued using error_logger:format/2.
 
 terminate(normal, #pastate{childports=ChildPorts}=State) ->
     stop_ports( ChildPorts, State ),
@@ -211,7 +216,7 @@ terminate(shutdown, #pastate{childports=ChildPorts}=State) ->
 terminate({shutdown, _Reason}, #pastate{childports=ChildPorts}=State) ->
     stop_ports( ChildPorts, State ),
     ok;
-terminate(_Reason, #pastate{childports=ChildPorts}=State) -> % error
+terminate(_Error, #pastate{childports=ChildPorts}=State) -> % error
     stop_ports( ChildPorts, State ),
     ok.
 

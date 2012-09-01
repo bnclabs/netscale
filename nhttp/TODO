@@ -1,0 +1,5 @@
+- Experiment with {keepalive, true} inet listen option. Like unplugging
+  ethernet cable and check the error response on the server side.
+
+- Explore applications for,
+    Gopher, SMTP, NNTP, FTP, WAIS
