@@ -49,6 +49,13 @@ uri(parse, Data) ->
             #httpuri{type=error}
     end.
 
+% Of what type uri is ?
+uri_type(#uri{host=none, path=none}=Uri) ->
+    error_logger:error_msg("URI is not properly parsed ~p~n", [Uri]);
+uri_type(#uri{host=_Host, path=none}=Uri) -> Uri#uri{type=authority};
+uri_type(#uri{host=none, path=_Path}=Uri) -> Uri#uri{type=abspath};
+uri_type(#uri{host=_Host, path=_Path}=Uri) -> Uri#uri{type=absolute}.
+
 % Interpret the parsed tokens from uri string.
 uri_parts(host, [_, _, Scheme, _, Authority | Parts], Uri) ->
     {User, Pass, Host, Port} = uri_parts( authority, Authority ),

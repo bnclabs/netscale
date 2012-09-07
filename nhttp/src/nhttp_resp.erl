@@ -4,16 +4,16 @@
 %                   *(message-header CRLF)
 %                   CRLF
 %                   [ message-body ]
-response() ->
+make_response( Resp ) ->
 
-statusline() ->
+make_statusline( Resp ) ->
 
 % @doc: Only HTTP version 1.1 is supported.
-version() -> "HTTP/1.1".
+make_version() -> "HTTP/1.1".
 
-headers() ->
+make_headers() ->
 
-header() ->
+make_header() ->
 
 % Always in RFC 1123 format.
 datestr({ {Y,M,D}, {H,Mi,S} }) ->

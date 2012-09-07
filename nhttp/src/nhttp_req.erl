@@ -9,7 +9,8 @@
 parse_req( State, closed ) ->
 
 parse_req( #nhttps{request=Req}=State, Data ) ->
-    parse_headers( parse_reqline( Data, Req ))
+    {XReq, XRest} = parse_reqline( Data, Req ),
+    YReq = parse_headers( XRest ),
             
 % Request-Line = Method SP Request-URI SP HTTP-Version CRLF
 parse_reqline( Data, #request{state=request_line}=Req ) when size(Data) > 0 ->
@@ -17,7 +18,7 @@ parse_reqline( Data, #request{state=request_line}=Req ) when size(Data) > 0 ->
     case re:run( Data, RE, [{capture,all,list}] ) of
         {match, [_, _, Method, Uri, Version, Rest]} ->
             Req#httpuri{ method=list_to_atom(Method),
-                         uri=nhttp_uri:parse_uri(Uri),
+                         uri=nhttp_uri:uri(parse, Uri),
                          version=parse_version(Version)
                        },
             {Req, Rest};
@@ -45,10 +46,11 @@ parse_headers({Req, HdrData}) ->
         HdrData_ ->
             case re:run( HdrData_, ?RE_HEADER, [global,{capture,all,list}] ) of
                 {match, [Hs]} ->
-                    parse_header(Hs, []);
+                    Req#request{ hdrs=merge_headers( parse_header( Hs, [] )) };
                 _ -> 
                     error_logger:error_msg(
-                        "Invalid header in request ~p ~n", [HdrData] )
+                        "Invalid header in request ~p ~n", [HdrData] ),
+                    Req
     end.
 
 
@@ -56,12 +58,6 @@ parse_header([], Acc) -> lists:reverse(Acc);
 parse_header([{_,_,Field,_,Value,_} | Hs], Acc) ->
     parse_header( Hs, [{string:to_lower(Field),Value} | Acc] ).
 
-
-% Multiple message-header fields with the same field-name MAY be
-% present in a message if and only if the entire field-value for that
-% header field is defined as a comma-separated list [i.e., #(values)].
-merge_multiple_headers(Hs) ->
-    ok.
 
 % @doc: Parse #rule structure into a list of `elements`.
 % #rule

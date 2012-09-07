@@ -48,10 +48,19 @@
                     uri,        % URI Record.
                     version,    % HTTP Version tuple.
                     hdrs,       % List of cured http header field/value pairs.
+                    entity,     % Binary string of request entity-body.
+                                % For chunked T-E, this field will be 'chunked'
+                    chunks=[]   % List of entity chunks, last chunk will be
+                                % empty binary string.
                   }).
 
 %% @doc: Response record.
--record( response, {
+-record( response, { % State value while composing a response.
+                     %  handle
+                     state=handle,
+                     version,   
+                     stcode,
+                     reason
                    }).
 
 %% @doc: URI record.
