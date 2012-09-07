@@ -1,0 +1,12 @@
+inactive_timeout :
+    Inactive timeout specifies the number of milli-seconds, the connection
+    process should wait for new requests. When this timeout expires, the
+    connection will be closed and the process exits. Typical configurations
+    are - for high traffic & short user-sessions, it can be configured like
+    5 minutes, for low traffic prolonged user-sessions, it can be configured
+    like 3-4 hours.
+
+    Note that, connections are not opened in keep-alive mode. So, when a
+    client connection is lost (not properly closed), there will be a leakage
+    in connected process. By configuring an optimal timeout this leakage can
+    be made self-limiting.
