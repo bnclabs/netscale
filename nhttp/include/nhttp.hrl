@@ -4,7 +4,7 @@
 -define( RE_LWS,    <<"\r\n[ \t]+">> ).
 -define( RE_TOKEN,  <<"[^()<>@,;:\\\\\"/\\[\\]\?={} \t\\x0-\x1f\x7f-\xff]+">> ).
 -define( RE_HEADER, 
-         <<"([ \t]*)(",?RE_TOKEN/binary,"):([ \t]*)([^\r\n]*)([ \t]*)\r\n">>
+         <<"([ \t]*)(",?RE_TOKEN/binary,"):([^\r\n]+)(\r\n)?">>
          % [_, _, Field, _, Value, _]
        ).
 
@@ -42,25 +42,30 @@
 
 %% @doc: Request record.
 -record( request, { % State value for parsing this request.
-                    %  request_line, hdrs, body | chunked.
-                    state=request_line,
+                    %  req_start, hdr_start, hdr_cont, body, req_end, invalid
+                    state=req_start,
                     method,     % HTTP Method atom.
                     uri,        % URI Record.
                     version,    % HTTP Version tuple.
-                    hdrs,       % List of cured http header field/value pairs.
-                    entity,     % Binary string of request entity-body.
-                                % For chunked T-E, this field will be 'chunked'
-                    chunks=[]   % List of entity chunks, last chunk will be
-                                % empty binary string.
+                    hdrs=[],    % List of cured http header field/value pairs.
+                    msgbody,    % Binary string of request entity-body.
+                                %   For chunked T-E it must have 'chunked'
+                    entbody=[], % List of entity chunks, last chunk will be
+                                %   empty binary string.
+                    leftover= <<>> % Entire request may not be available as a
+                                   %   single block of binary data.
                   }).
 
 %% @doc: Response record.
 -record( response, { % State value while composing a response.
-                     %  handle
-                     state=handle,
-                     version,   
-                     stcode,
-                     reason
+                     %  stline
+                     state=stline,
+                     version,   % HTTP Version supported by nhttp server
+                     stcode,    % Response status code 
+                     reason,    % Reason.
+                     hdrs=[],   % List of Response headers.
+                     msgbody,   % Binary string of response entity-body.
+                                %   For chunked T-E it must have 'chunked'
                    }).
 
 %% @doc: URI record.

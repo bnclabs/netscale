@@ -18,14 +18,14 @@ doaccept( ServerRef ) ->
 init( [LSock] ) ->
     process_flag( trap_exit, true ),
     {ok, ConnTimeout} = application:get_env( ?APPNAME, inactive_timeout ),
-    State = #nhttps{ lsock=LSock, conntimeout=ConnTimeout },
+    State = #nhttps{request=#request{}, lsock=LSock, conntimeout=ConnTimeout},
     {ok, State}.
 
 
 %%-- Calls
 
 handle_call(Req, From, State) ->
-    error_logger:error_msg( "Unknown call ~p from ~p ~n", [Req, From] ),
+    ?EMSG( "Unknown call ~p from ~p ~n", [Req, From] ),
     {noreply, State, State#nhttps.conntimeout}.
 
 
@@ -52,14 +52,18 @@ handle_info(timeout, State) ->
     stop_connection( State ),
     {stop, "Timed out occured closing connection", State};
 
-handle_info({tcp, Socket, Data}, #nhttps{socket=Socket}=State) ->
+handle_info({tcp, Socket, Data}, State) ->
+    NewState = dorequest( State, Data ),
+    % TODO : Check for connection close and close connection after response is
+    % sent.
     inet:setopts( Socket, [{active, once}] ),
-    nhttp_req:parse_req( State, Data ),
-    {noreply, State, State#nhttps.conntimeout};
+    {noreply, NewState, NewState#nhttps.conntimeout};
 
 handle_info({tcp_closed, Socket}, #nhttps{socket=Socket}=State) ->
     stop_connection( State ),
     nhttp_req:parse_req( State, closed ),
+    % TODO : Check for connection close and close connection after response is
+    % sent.
     {stop, "Remote connection closed", State};
 
 handle_info({tcp_error, Socket, _Reason}, #nhttps{socket=Socket}=State) ->
@@ -103,3 +107,19 @@ stop_connection( #nhttps{socket=Socket}=State ) ->
        true -> ok
     end.
 
+dorequest( #nhttps{request=Req, socket=Sock}=State, Data ) ->
+    try nhttp_req:parse_request( Req, Data ) of
+        #request{state=req_end}=FullReq -> 
+            State#nhttps{request=#request{leftover=FullReq#request.leftover}};
+        ContReq -> 
+            State#nhttps{request=ContReq}
+    catch
+        throw:{status, Code, Body} ->
+            nhttp_resp:start_response(Sock, Code, []),
+            nhttp_resp:send_response(Sock, [], Body)
+            State#nhttps{request=#request{}};
+        throw:{status, Code, Body, FailReq} ->
+            State#nhttps{request=#request{leftover=FailReq#request.leftover}};
+        _ ->
+            State
+    end.

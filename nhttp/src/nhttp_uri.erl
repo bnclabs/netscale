@@ -38,15 +38,15 @@
 % for the resource is abs_path (section 5.1.2). The use of IP addresses
 
 % @doc: HTTP URL into #httpuri{} record and return the same.
-uri(parse, "*") -> #httpuri{ type='*' };
-uri(parse, []) -> #httpuri{ type=abspath, path="/" };
-uri(parse, Data) ->
+uri_parse("*") -> #httpuri{ type='*' };
+uri_parse([]) -> #httpuri{ type=abspath, path="/" };
+uri(Data) ->
     case re:run(Data, ?RE_URI, [{capture,all,list}]) of
         {match, Parts} ->
             uri_type( uri_parts( host, Parts, #httpuri{} ));
         _ -> 
-            error_logger:error_msg("Invalid URI in request ~p ~n", [Data]),
-            #httpuri{type=error}
+            ?EMSG("Invalid URI in request ~p ~n", [Data]),
+            throw({status, "400", "Invalid request-URI"})
     end.
 
 % Of what type uri is ?
@@ -104,11 +104,11 @@ uri(netloc, Host, #uri{host=Host}=Uri) -> Uri;
 uri(netloc, Host, #uri{host=none}=Uri) -> Uri#uri{ host=Host }.
 uri(netloc, Host, Uri) -> Uri.
 
-
-uri(compose, #httpuri{type="*"}=Uri) -> <<"">>;
-uri(compose, #httpuri{type=abspath}=Uri) -> abspath(Uri).
-uri(compose, #httpuri{type=authority}=Uri) -> authority(Uri).
-uri(compose, #httpuri{type=absolute}=Uri) -> authority(Uri) ++ abspath(Uri).
+% @doc: Compose uri binary-string from httpuri record.
+uri_compose(#httpuri{type="*"}=Uri)      -> <<"">>;
+uri_compose(#httpuri{type=abspath}=Uri)  -> abspath(Uri).
+uri_compose(#httpuri{type=authority}=Uri)-> authority(Uri).
+uri_compose(#httpuri{type=absolute}=Uri) -> authority(Uri) ++ abspath(Uri).
 
 authority(#httpuri{type=authority, scheme=S,user=U,pass=Pa,host=H,port=P}=Uri)->
     % TODO : Encode `Host` as punycode.
@@ -126,7 +126,8 @@ abspath(#uri{path=P, quer=Q, frag=F}=Uri) ->
     Path ++ "?" ++ Quer ++ "#" ++ Frag.
 
 
-uri(compare, Uri1, Uri2) ->
+% @doc: Compare two `httpuri` records.
+uri_compare(Uri1, Uri2) ->
     lists:all([
         compare_scheme( Uri1#uri.scheme, Uri2#uri.scheme ),
         compare_host( Uri1#uri.host, Uri2#uri.host ),
@@ -198,16 +199,17 @@ unquote_plus([], Acc) ->
 unquote_plus([$+ | Rest], Acc) ->
     unquote_plus( Rest, [$\s | Acc] );
 unquote_plus([?PERCENT, Hi, Lo | Rest], Acc) when ?IS_HEX(Lo), ?IS_HEX(Hi) ->
-    unquote_plus( Rest, [(unhexdigit(Lo) bor (unhexdigit(Hi) bsl 4)) | Acc] );
+    unquote_plus( Rest, [(dehex(Lo) bor (dehex(Hi) bsl 4)) | Acc] );
 unquote_plus([C | Rest], Acc) ->
     unquote_plus( Rest, [C | Acc] ).
 
 
-hexdigit(C) when C < 10 -> $0 + C;
-hexdigit(C) when C < 16 -> $A + (C - 10).
+%% @doc Convert an integer less than 16 to a hex digit.
+hexdigit(C) when C >= 0, C =< 9 -> C + $0;
+hexdigit(C) when C =< 15        -> C + $a - 10.
 
-unhexdigit(C) when C >= $0, C =< $9 -> C - $0;
-unhexdigit(C) when C >= $a, C =< $f -> C - $a + 10;
-unhexdigit(C) when C >= $A, C =< $F -> C - $A + 10.
-
+%% @doc Convert a hex digit to its integer value.
+dehex(C) when C >= $0, C =< $9 -> C - $0;
+dehex(C) when C >= $a, C =< $f -> C - $a + 10;
+dehex(C) when C >= $A, C =< $F -> C - $A + 10.
 

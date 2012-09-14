@@ -3,83 +3,57 @@
 -include_lib( "eunit/include/eunit.hrl" ).
 -include_lib( "nhttp/include/nhttp.hrl" ).
 
-% @doc: Parse date in one of the following format, RFC1123, RFC1036, ASCTIME.
-parse_date(Data) ->
-    case parse_date( rfc1123, Data ) of
-        {match, _}=X -> X;
-        _ -> case parse_date( rfc1036, Data ) of
-                {match, _}=X -> X;
-                _ -> case parse_date( asctime, Data ) of
-                        {match, _}=X -> X;
-                        _ -> nomatch
+% @doc: Parse #rule structure into a list of `elements`.
+% #rule
+%   A construct "#" is defined, similar to "*", for defining lists of
+%   elements. The full form is "<n>#<m>element" indicating at least
+%   <n> and at most <m> elements, each separated by one or more commas
+%   (",") and OPTIONAL linear white space (LWS). This makes the usual
+%   form of lists very easy; a rule such as
+parse_hashrule(Data) when is_list(Data) ->
+    lists:map( fun string:strip/1, string:tokens(Data, ",")).
+
+
+parse_params(Param) ->
+    case re:run( Param, ";([^=]+)(=([^;]+))", [global,{capture,all,list}] ) of
+        {match, Ps} ->
+            parse_params(Ps);
+        _ ->
+            ?EMSG( "Invalid params field ~p~n", [Param] ),
+            []
     end.
 
-% @doc: Parse date in RFC1123 format
-parse_date(rfc1123, Data) -> 
-    parse_date( Data,
-                ?RE_DATETIME_RFC1123,
-                fun([_, Day,D,M,Y,H,Mi,S]) -> {Y,M,D,H,Mi,S} end );
+parse_params([], Acc) -> lists:reverse(Acc);
+parse_params([[_,K,_,V] | Ps], Acc) ->
+    parse_params( Ps, [{string:strip(K), string:strip(V)} | Acc ] ).
 
-% @doc: Parse date in RFC1036 format
-parse_date(rfc1036, Data) ->
-    parse_date( Data,
-                ?RE_DATETIME_RFC1036,
-                fun([_, Day,D,M,Y,H,Mi,S]) -> {Y,M,D,H,Mi,S} end );
 
-% @doc: Parse date in ASCTIME format
-parse_date(asctime, Data) ->
-    parse_date( Data,
-                ?RE_DATETIME_ASCTIME,
-                fun([_, Day,M,D,H,Mi,S,Y]) -> {Y,M,D,H,Mi,S} end ).
+%% @doc Convert an iolist to a hexadecimal string.
+to_hex(0) -> "0";
+to_hex(I) when is_integer(I), I > 0 -> to_hex(I, []);
+to_hex(B) -> to_hex(iolist_to_binary(B), []).
 
-parse_date(Data, R, Fn) ->
-    case re:run( Data, R, [{capture, all, list}] ) of
-        {match, X} -> {match, date_to_tuple( Fn( X ))};
-        _ -> nomatch
-    end.
+to_hex(<<>>, Acc) -> lists:reverse(Acc);
+to_hex(<<C1:4, C2:4, Rest/binary>>, Acc) ->
+    to_hex(Rest, [hexdigit(C2), hexdigit(C1) | Acc]);
+to_hex(0, Acc) -> Acc;
+to_hex(I, Acc) -> to_hex(I bsr 4, [hexdigit(I band 16#F) | Acc]).
 
-% @doc: convert date components in string tokens to tuple of date and time.
-% Similar to the convention used in `calendar` module.
-date_to_tuple({Y,M,D,H,Mi,S}) ->
-    {{ string:to_integer( D ),
-       string:to_integer( month_to_val( M )),
-       string:to_integer( Y )
-     },
-     { string:to_integer( H ),
-       string:to_integer( Mi ),
-       string:to_integer( S )
-     }}.
+%% @doc Convert an integer less than 16 to a hex digit.
+hexdigit(C) when C >= 0, C =< 9 -> C + $0;
+hexdigit(C) when C =< 15        -> C + $a - 10.
 
-month_to_val("Jan"++X) -> 1;
-month_to_val("Feb"++X) -> 2;
-month_to_val("Mar"++X) -> 3;
-month_to_val("Apr"++X) -> 4;
-month_to_val("May"++X) -> 5;
-month_to_val("Jun"++X) -> 6;
-month_to_val("Jul"++X) -> 7;
-month_to_val("Aug"++X) -> 8;
-month_to_val("Sep"++X) -> 9;
-month_to_val("Oct"++X) -> 10;
-month_to_val("Nov"++X) -> 11;
-month_to_val("Dec"++X) -> 12.
+%% @doc Convert a hex digit to its integer value.
+dehex(C) when C >= $0, C =< $9 -> C - $0;
+dehex(C) when C >= $a, C =< $f -> C - $a + 10;
+dehex(C) when C >= $A, C =< $F -> C - $A + 10.
 
-val_to_month(1) -> "Jan";
-val_to_month(2) -> "Feb";
-val_to_month(3) -> "Mar";
-val_to_month(4) -> "Apr";
-val_to_month(5) -> "May";
-val_to_month(6) -> "Jun";
-val_to_month(7) -> "Jul";
-val_to_month(8) -> "Aug";
-val_to_month(9) -> "Sep";
-val_to_month(10) -> "Oct";
-val_to_month(11) -> "Nov";
-val_to_month(12) -> "Dec".
+%% @doc Convert a hexadecimal string to a binary.
+to_bin(L) -> to_bin(L, []).
 
-dayof(1) -> "Mon";
-dayof(2) -> "Tue";
-dayof(3) -> "Wed";
-dayof(4) -> "Thu";
-dayof(5) -> "Fri";
-dayof(6) -> "Sat";
-dayof(7) -> "Sun".
+to_bin([], Acc) -> iolist_to_binary(lists:reverse(Acc));
+to_bin([C1, C2 | Rest], Acc) ->
+    to_bin(Rest, [(dehex(C1) bsl 4) bor dehex(C2) | Acc]).
+
+%% @doc Convert a hexadecimal string to an integer.
+to_int(L) -> erlang:list_to_integer(L, 16).
