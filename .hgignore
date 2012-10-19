@@ -10,6 +10,8 @@ syntax: glob
 *.script
 numeric/priv/primes/prime*.dets
 logs/
+# Sub repositories
+pluggdapps/
 # switch to regexp syntax.
 syntax: regexp
 ^\.pc/
