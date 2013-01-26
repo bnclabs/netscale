@@ -111,6 +111,17 @@ Main specifications:
     (Updated by RFC2732)
     (Status: DRAFT STANDARD)
 
+2818 HTTP Over TLS. E. Rescorla. May 2000. (Format: TXT=15170 bytes)
+     (Updated by RFC5785) (Status: INFORMATIONAL)
+
+2388 Returning Values from Forms: multipart/form-data. L. Masinter.
+     August 1998. (Format: TXT=16531 bytes) (Status: PROPOSED STANDARD)
+
+2184 MIME Parameter Value and Encoded Word Extensions: Character Sets,
+     Languages, and Continuations. N. Freed, K. Moore. August 1997.
+     (Format: TXT=17635 bytes) (Obsoleted by RFC2231) (Updates RFC2045,
+     RFC2047, RFC2183) (Status: PROPOSED STANDARD)
+
 Date formats :
 ==============
 
