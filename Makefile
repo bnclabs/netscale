@@ -20,9 +20,10 @@ runeunit :
 release release% :
 	$(MAKE) -C releases $(word 2,$(call ctarget,$@))
 
+pushcode: push-github
+
 push-github:
-	# git remote add origin git@github.com:prataprc/netscale.git
-	git push -u origin master
+	git push git@github.com:prataprc/netscale.git
 
 clean : cleandumps
 	@for dir in $(APPS); do $(MAKE) -C $$dir clean; done
